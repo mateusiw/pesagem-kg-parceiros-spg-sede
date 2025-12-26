@@ -134,7 +134,7 @@
                             <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
                                 <!-- Formatação decimal para taras -->
-                                <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" value="2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Pallet (kg)</label>
@@ -411,7 +411,7 @@
             // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
-            document.getElementById('tare').value = '2'; // Restaura padrão
+            document.getElementById('tare').value = ''; // Limpa tara caixa (era '2')
             document.getElementById('palletTare').value = ''; // Limpa tara palete
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
@@ -452,7 +452,7 @@
             document.getElementById('commercialVariety').value = item.commercialVariety;
             
             document.getElementById('boxes').value = item.boxes;
-            document.getElementById('tare').value = item.tare || '2';
+            document.getElementById('tare').value = item.tare || ''; // Carrega vazio se não tiver
             document.getElementById('palletTare').value = item.palletTare || ''; // Carrega tara palete
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
@@ -615,6 +615,7 @@
                     }
 
                     // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3)
+                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3 - Agora com 5 itens)
                     const html = `
                     <div class="p-5 hover:bg-slate-50 transition-colors group">
                         
@@ -631,7 +632,7 @@
                             </div>
                         </div>
 
-                        <!-- Grid de Estatísticas (6 Itens) -->
+                        <!-- Grid de Estatísticas (5 Itens agora) -->
                         <div class="grid grid-cols-3 gap-2"> 
                             
                             <!-- Linha 1: Dados da Embalagem -->
@@ -641,7 +642,6 @@
 
                             <!-- Linha 2: Totais Finais -->
                             ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq')}
-                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
                             ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
                             
                         </div>
