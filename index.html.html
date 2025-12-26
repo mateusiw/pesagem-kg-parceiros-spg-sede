@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Resumo Colheita Parceiros SPG SEDE</title>
+    
+    <!-- Configurações PWA com Ícone Personalizado -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/wEozr34.png">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/wEozr34.png">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"SPG SEDE 2026","short_name":"SPG SEDE","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"https://i.imgur.com/wEozr34.png","sizes":"192x192","type":"image/png"},{"src":"https://i.imgur.com/wEozr34.png","sizes":"512x512","type":"image/png"}]}'>
+    
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPG SEDE">
+    
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- BIBLIOTECAS MANUAIS (html2canvas + jsPDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Garante espaçamento melhor em inputs no mobile */
+        input, select { line-height: 1.5; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
+
+    <!-- Navbar -->
+    <div class="bg-white border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-center shadow-sm sticky top-0 z-40 gap-3">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
+            <div>
+                <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG SEDE</h1>
+                <p class="text-[10px] text-slate-500 font-medium">Resumo da Pesagem (kg) Parceiros SPG SEDE</p>
+            </div>
+        </div>
+        <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <!-- Botão WhatsApp (NOVO) -->
+            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                <span>Copiar Texto WhatsApp</span>
+            </button>
+            
+            <!-- Botão PDF -->
+            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                <span>Baixar PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-8 mt-4">
+        
+        <!-- COLUNA DA ESQUERDA: CONTROLES -->
+        <div class="w-full lg:w-1/3 space-y-4">
+            
+            <!-- ADICIONAR BLOCOS -->
+            <div id="formContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-colors duration-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="file-plus" class="text-emerald-600"></i> Adicionar Bloco
+                    </h2>
+                    <button type="button" onclick="clearBlockForm()" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                        <i data-lucide="eraser" class="w-3 h-3"></i> Limpar/Cancelar
+                    </button>
+                </div>
+                
+                <form id="harvestForm" onsubmit="addItem(event)" class="space-y-4">
+                    
+                    <!-- LINHA 1: PARCEIRO E BLOCO -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parceiro</label>
+                            <select id="partner" required onchange="updateDynamicTitle()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                                <option value="">Selecione...</option>
+                                <option value="SPG Oásis">SPG Oásis</option>
+                                <option value="Sítio Leitão">Sítio Leitão</option>
+                                <option value="Sítio Araçá">Sítio Araçá</option>
+                                <option value="Sítio Edivan">Sítio Edivan</option>
+                                <option value="Sítio Evandro">Sítio Evandro</option>
+                                <option value="Agrotech Pinheiro">Agrotech Pinheiro</option>
+                                <option value="Sítio Márcia">Sítio Márcia</option>
+                                <option value="Sítio Valdir">Sítio Valdir</option>
+                                <option value="Sítio Filho">Sítio Filho</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nº Bloco</label>
+                            <input type="text" id="talhao" required placeholder="Ex: 1 - A" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                        </div>
+                    </div>
+
+                    <!-- LINHA DE VARIEDADE E COMERCIAL -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cultura</label>
+                            <select id="variety" onchange="updateCommercialInput()" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                                <option value="">Selecione...</option>
+                                <option value="Brócolis">Brócolis</option>
+                                <option value="Couve-Flor">Couve-Flor</option>
+                            </select>
+                        </div>
+                        <div id="commercialVarietyWrapper">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                            <input type="text" id="commercialVariety" placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <!-- INFORMAÇÕES ADICIONAIS -->
+                    <div class="border-t border-slate-100 my-2 pt-2">
+                        <label class="text-xs font-bold text-slate-400 block mb-3">Informações Adicionais</label>
+                        
+                        <!-- Linha 1: Caixas e Peso Bruto (Reorganizado para facilitar) -->
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Caixas</label>
+                                <input type="text" id="boxes" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 50" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
+                                <input type="text" id="grossWeight" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Linha 2: Taras (Caixa e Palete) -->
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
+                                <!-- Formatação decimal para taras -->
+                                <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" value="2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Palete (kg)</label>
+                                <!-- Formatação decimal para taras -->
+                                <input type="text" id="palletTare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 25" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Linha 3: Peso Liq e Unidades (MANUAL) -->
+                         <div class="grid grid-cols-2 gap-3 mb-3">
+                             <div>
+                                <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
+                                <input type="text" id="harvestWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
+                            </div>
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Média Unid. p/ Caixa</label>
+                                <input type="text" id="unitsPerBox" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 18" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Linha 4: Total Unid e Média -->
+                        <div class="grid grid-cols-2 gap-3 mb-2">
+                             <div>
+                                <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Total Unidades</label>
+                                <input type="text" id="totalUnits" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
+                            </div>
+                            <div>
+                               <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Médio (g)</label>
+                               <input type="text" id="averageWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
+                           </div>
+                       </div>
+
+                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
+                            <span>* Liq = Bruto - (Caixas x Tara Cx) - Tara Palete</span>
+                            <span>* Total Unid = Caixas x Unid. p/ Caixa</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> <span>Adicionar ao Relatório</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de Itens -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-slate-700">Itens Gerados</h3>
+                    <button onclick="clearAll()" class="text-xs text-red-500 hover:text-red-700 font-bold underline">Limpar Tudo</button>
+                </div>
+                <ul id="itemsList" class="space-y-2 text-sm text-slate-600">
+                    <!-- JS -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div class="w-full lg:w-2/3 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
+            
+            <div id="report-card" class="w-full flex-1 flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
+                
+                <!-- Cabeçalho -->
+                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3">
+                    <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0">
+                    <div class="relative z-10 w-full pr-24"> 
+                        <h2 id="reportTitle" class="text-base font-bold leading-snug tracking-normal">
+                            <!-- Injetado via JS -->
+                        </h2>
+                        <div class="mt-3 pt-3 border-t border-white/20">
+                             <span id="headerDateTime" class="text-xs font-medium text-emerald-50 block opacity-90 tracking-wide">
+                                <!-- Injetado via JS -->
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conteúdo -->
+                <div id="reportContent" class="divide-y divide-slate-50 flex-1 overflow-y-auto">
+                    <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Adicione blocos no formulário ao lado.</div>
+                </div>
+
+                <!-- Operacional Footer -->
+                <div id="operationalFooter" class="bg-white border-t border-slate-200 p-4 shrink-0">
+                     <!-- Conteúdo injetado via JS -->
+                </div>
+
+                <!-- Rodapé da Marca -->
+                <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
+                    <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
+                        SPG SEDE • Dados Oficiais
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        console.log("Aplicação 'Resumo Colheita Parceiros SPG SEDE' carregada com sucesso.");
+
+        let harvestData = [];
+        let editingIndex = -1;
+
+        lucide.createIcons();
+        updateDynamicTitle();
+        renderList(); 
+        renderReport(); 
+
+        // --- FUNÇÕES DE DATA E HORA ---
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+
+        function getGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            if (hours >= 12 && hours < 18) return 'Boa tarde';
+            if (hours >= 18) return 'Boa noite';
+            return 'Bom dia';
+        }
+
+        function updateDynamicTitle() {
+            const now = new Date();
+            const hours = now.getHours();
+            
+            // Lógica de Saudação
+            let greeting = getGreeting();
+
+            // Lógica de Dia da Semana
+            const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const weekDay = days[now.getDay()];
+
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            const weekNumber = getWeekNumber(now);
+            
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const timeString = `${String(hours).padStart(2, '0')}:${minutes}${ampm}`; 
+
+            // LOGICA NOVA: Nome do Parceiro Dinâmico
+            const partnerInput = document.getElementById('partner');
+            // Se tiver valor no select, usa ele. Se não, usa "Pessoal"
+            const partnerName = (partnerInput && partnerInput.value) ? partnerInput.value : 'Pessoal';
+
+            const titleElement = document.getElementById('reportTitle');
+            // Título dinâmico com o nome do parceiro
+            titleElement.innerHTML = `${greeting}, ${partnerName}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
+
+            const dateElement = document.getElementById('headerDateTime');
+            dateElement.innerText = `Data: ${day}/${month}/${year} - ${timeString} - Semana ${weekNumber}`;
+        }
+
+        // --- FUNÇÕES DE CÁLCULO ---
+
+        function calculateValues() {
+            const boxes = parsePTBRNumber(document.getElementById('boxes').value);
+            const tare = parsePTBRNumber(document.getElementById('tare').value);
+            const palletTare = parsePTBRNumber(document.getElementById('palletTare').value); // NOVA TARA
+            const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
+            const unitsPerBox = parsePTBRNumber(document.getElementById('unitsPerBox').value);
+            
+            // Outputs
+            const netWeightInput = document.getElementById('harvestWeight');
+            const totalUnitsInput = document.getElementById('totalUnits');
+            const avgInput = document.getElementById('averageWeight');
+
+            // 1. Calcular Peso Líquido (Gross - (TaraCx * Boxes) - TaraPalete)
+            let netWeight = 0;
+            if (grossWeight > 0) {
+                const totalBoxTare = boxes * tare;
+                const totalTare = totalBoxTare + palletTare; // Soma tara caixas + tara palete
+                netWeight = Math.max(0, grossWeight - totalTare);
+                netWeightInput.value = Math.round(netWeight);
+                formatNumberInput(netWeightInput);
+            } else {
+                netWeightInput.value = "";
+            }
+
+            // 2. Calcular Total Unidades (Boxes * Unid/Box)
+            let totalUnits = 0;
+            if (boxes > 0 && unitsPerBox > 0) {
+                totalUnits = boxes * unitsPerBox;
+                totalUnitsInput.value = Math.round(totalUnits);
+                formatNumberInput(totalUnitsInput);
+            } else {
+                totalUnitsInput.value = "";
+            }
+
+            // 3. Calcular Média (Peso Líquido * 1000 / Total Unidades)
+            if (totalUnits > 0 && netWeight > 0) {
+                const avgG = (netWeight * 1000) / totalUnits;
+                avgInput.value = Math.round(avgG);
+                formatNumberInput(avgInput);
+            } else {
+                avgInput.value = "";
+            }
+        }
+
+        // Permite dígitos e vírgula para campos decimais (ex: Tara)
+        function formatDecimalInput(input) {
+            let value = input.value;
+            // Remove tudo que não for número ou vírgula
+            value = value.replace(/[^0-9,]/g, '');
+            
+            // Garante que só exista uma vírgula
+            const parts = value.split(',');
+            if (parts.length > 2) {
+                value = parts[0] + ',' + parts.slice(1).join('');
+            }
+            input.value = value;
+        }
+
+        // Função para inteiros/milhares
+        function formatNumberInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value) input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            else input.value = "";
+        }
+
+        function parsePTBRNumber(val) {
+            if (!val) return 0;
+            const cleanStr = val.toString().replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleanStr) || 0;
+        }
+
+        // --- FUNÇÕES DE OPERAÇÃO ---
+
+        function updateCommercialInput() {
+            const variety = document.getElementById('variety').value;
+            const wrapper = document.getElementById('commercialVarietyWrapper');
+            
+            if (variety === 'Brócolis') {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <select id="commercialVariety" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                        <option value="">Selecione...</option>
+                        <option value="BRO 68 Syngenta">BRO 68 Syngenta</option>
+                        <option value="Master TSV">Master TSV</option>
+                        <option value="Sakata Jiraya F1">Sakata Jiraya F1</option>
+                        <option value="PHAR LAP">PHAR LAP</option>
+                    </select>
+                `;
+            } else if (variety === 'Couve-Flor') {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <select id="commercialVariety" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                        <option value="">Selecione...</option>
+                        <option value="Vereda">Vereda</option>
+                        <option value="Copacabana">Copacabana</option>
+                        <option value="Tirsuli">Tirsuli</option>
+                        <option value="SF-1758 F1">SF-1758 F1</option>
+                        <option value="Champagne Snow">Champagne Snow</option>
+                        <option value="Serena">Serena</option>
+                        <option value="Supremo">Supremo</option>
+                    </select>
+                `;
+            } else {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <input type="text" id="commercialVariety" placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                `;
+            }
+        }
+
+        function clearBlockForm() {
+            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
+            document.getElementById('talhao').value = '';
+            document.getElementById('boxes').value = '';
+            document.getElementById('tare').value = '2'; // Restaura padrão
+            document.getElementById('palletTare').value = ''; // Limpa tara palete
+            document.getElementById('grossWeight').value = ''; 
+            document.getElementById('unitsPerBox').value = '';
+            
+            // Calculados
+            document.getElementById('totalUnits').value = '';
+            document.getElementById('averageWeight').value = ''; 
+            document.getElementById('harvestWeight').value = ''; 
+            
+            const varietySelect = document.getElementById('variety');
+            varietySelect.selectedIndex = 0;
+            updateCommercialInput(); 
+            updateDynamicTitle(); // Atualiza título (vai manter o nome do parceiro se estiver selecionado)
+
+            editingIndex = -1;
+            const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+
+            submitBtn.innerHTML = '<i data-lucide="plus-circle" class="w-4 h-4"></i> <span>Adicionar ao Relatório</span>';
+            submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            submitBtn.classList.add('bg-slate-800', 'hover:bg-slate-900');
+            
+            formTitle.innerHTML = '<i data-lucide="file-plus" class="text-emerald-600"></i> Adicionar Bloco';
+            formContainer.classList.remove('border-blue-300', 'ring-2', 'ring-blue-100');
+            
+            lucide.createIcons();
+        }
+
+        function editItem(index) {
+            const item = harvestData[index];
+            editingIndex = index; 
+
+            document.getElementById('partner').value = item.partner;
+            document.getElementById('talhao').value = item.talhao;
+            document.getElementById('variety').value = item.variety;
+            updateCommercialInput(); 
+            document.getElementById('commercialVariety').value = item.commercialVariety;
+            
+            document.getElementById('boxes').value = item.boxes;
+            document.getElementById('tare').value = item.tare || '2';
+            document.getElementById('palletTare').value = item.palletTare || ''; // Carrega tara palete
+            document.getElementById('grossWeight').value = item.grossWeight || '';
+            document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
+            
+            // Recalcula campos dependentes
+            calculateValues();
+            updateDynamicTitle(); // Atualiza título com o parceiro sendo editado
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>';
+            submitBtn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+
+            formTitle.innerHTML = '<i data-lucide="pencil" class="text-blue-600"></i> Editando Bloco';
+            formContainer.classList.add('border-blue-300', 'ring-2', 'ring-blue-100');
+
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            renderList();
+            lucide.createIcons();
+        }
+
+        function addItem(e) {
+            e.preventDefault();
+
+            // Valores Calculados ou Diretos
+            const netWeightRaw = document.getElementById('harvestWeight').value; 
+            const totalUnitsRaw = document.getElementById('totalUnits').value;
+            const grossWeightRaw = document.getElementById('grossWeight').value;
+            const tareRaw = document.getElementById('tare').value;
+            const palletTareRaw = document.getElementById('palletTare').value; 
+            const unitsPerBoxRaw = document.getElementById('unitsPerBox').value;
+
+            const newItem = {
+                partner: document.getElementById('partner').value,
+                talhao: document.getElementById('talhao').value,
+                variety: document.getElementById('variety').value,
+                commercialVariety: document.getElementById('commercialVariety').value,
+                boxes: document.getElementById('boxes').value,
+                
+                tare: tareRaw,
+                palletTare: palletTareRaw, // Salva tara palete
+                grossWeight: grossWeightRaw,
+                unitsPerBox: unitsPerBoxRaw,
+                
+                harvestWeight: netWeightRaw, // Salva o Peso Líquido como oficial
+                totalUnits: totalUnitsRaw,   // Salva o Total Unidades oficial
+                averageWeight: document.getElementById('averageWeight').value
+            };
+
+            if (editingIndex >= 0) {
+                harvestData[editingIndex] = newItem;
+                clearBlockForm(); 
+            } else {
+                harvestData.push(newItem);
+                clearBlockForm(); 
+            }
+
+            renderReport();
+            renderList();
+        }
+
+        function removeItem(index) {
+            if (editingIndex === index) clearBlockForm();
+            else if (editingIndex > index) editingIndex--;
+
+            harvestData.splice(index, 1);
+            renderReport();
+            renderList();
+        }
+
+        function clearAll() {
+            if(confirm('Tem certeza?')) {
+                harvestData = [];
+                clearBlockForm(); 
+                renderReport();
+                renderList();
+            }
+        }
+
+        function renderList() {
+            const list = document.getElementById('itemsList');
+            list.innerHTML = '';
+
+            if (harvestData.length === 0) {
+                const emptyLi = document.createElement('li');
+                emptyLi.className = "text-center text-slate-400 italic py-2";
+                emptyLi.innerText = "Nenhum bloco adicionado.";
+                list.appendChild(emptyLi);
+                return;
+            }
+
+            harvestData.forEach((item, index) => {
+                const li = document.createElement('li');
+                const activeClass = (index === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+
+                li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
+                li.innerHTML = `
+                    <span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
+                        <b>#${item.talhao}</b> - ${item.variety} 
+                        ${index === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                    </span>
+                    <div class="flex items-center">
+                        <button onclick="editItem(${index})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                            <i data-lucide="pencil" width="14"></i>
+                        </button>
+                        <button onclick="removeItem(${index})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                            <i data-lucide="trash-2" width="14"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        function renderReport() {
+            const container = document.getElementById('reportContent');
+            const footerContainer = document.getElementById('operationalFooter');
+
+            container.innerHTML = '';
+            let sumBoxes = 0;
+            let sumWeight = 0;
+            let sumTotalUnits = 0;
+            // let sumAvgWeight = 0; // Removido pois não usaremos média das médias
+            // let countAvgWeight = 0; // Removido
+
+            if (harvestData.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full min-h-[300px] flex flex-col items-center justify-center">
+                    <i data-lucide="clipboard-list" class="mb-2 w-8 h-8 opacity-20"></i>
+                    <span>Adicione dados no formulário ao lado para visualizar.</span>
+                </div>`;
+            } else {
+                harvestData.forEach(item => {
+                    const displayVariety = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
+                    
+                    const boxesVal = parsePTBRNumber(item.boxes);
+                    const weightVal = parsePTBRNumber(item.harvestWeight); // Peso Líquido
+                    const totalUnitsVal = parsePTBRNumber(item.totalUnits);
+
+                    sumBoxes += boxesVal;
+                    sumWeight += weightVal;
+                    sumTotalUnits += totalUnitsVal;
+
+                    // const currentAvg = parsePTBRNumber(item.averageWeight);
+                    // if (currentAvg > 0) {
+                    //     sumAvgWeight += currentAvg;
+                    //     countAvgWeight++;
+                    // }
+
+                    // --- CÁLCULO DA MÉDIA KG POR CAIXA PARA O CARD ---
+                    let avgKgBoxStr = "-";
+                    if (boxesVal > 0) {
+                        // Calcula média com 1 casa decimal (ex: 8,5)
+                        const avgKgBox = weightVal / boxesVal;
+                        avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    }
+
+                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3)
+                    const html = `
+                    <div class="p-5 hover:bg-slate-50 transition-colors group">
+                        
+                        <!-- 1. TOPO: PARCEIRO, TÍTULO + TAG -->
+                        <div class="flex flex-col mb-3">
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>
+                            <div class="flex items-center justify-between">
+                                <span class="text-base font-bold text-slate-800 leading-normal">
+                                    Bloco ${item.talhao}
+                                </span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[10px] font-bold text-slate-600 uppercase leading-normal tracking-wide">${displayVariety}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Estatísticas (6 Itens) -->
+                        <div class="grid grid-cols-3 gap-2"> 
+                            
+                            <!-- Linha 1: Dados da Embalagem -->
+                            ${createStatItem('box', item.boxes, 'Caixas', true)}
+                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'Média Kg/Cx')}
+                            ${createStatItem('layers', item.unitsPerBox + ' un', 'Média Unid/Cx')}
+
+                            <!-- Linha 2: Totais Finais -->
+                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq')}
+                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
+                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
+                            
+                        </div>
+                    </div>
+                    `;
+                    container.innerHTML += html;
+                });
+            }
+
+            // RODAPÉ OPERACIONAL (SEM BORDAS)
+            const sumBoxesStr = sumBoxes.toLocaleString('pt-BR');
+            const sumWeightStr = sumWeight.toLocaleString('pt-BR');
+            const sumTotalUnitsStr = sumTotalUnits.toLocaleString('pt-BR');
+            
+            // CORREÇÃO: Cálculo da média ponderada real (Peso Total / Total Unidades)
+            let finalAvgWeight = 0;
+            if (sumTotalUnits > 0) {
+                finalAvgWeight = (sumWeight * 1000) / sumTotalUnits;
+            }
+            // Arredonda para inteiro para exibição em gramas
+            const finalAvgWeightStr = Math.round(finalAvgWeight).toLocaleString('pt-BR');
+
+            footerContainer.innerHTML = `
+                <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
+                <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
+                    <!-- Decorativo Fundo -->
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100/50 rounded-full -mr-8 -mt-8 pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100/50 rounded-full -ml-6 -mb-6 pointer-events-none"></div>
+
+                    <!-- Item 1: Total Unidades (DESTAQUE NO TOPO) -->
+                    <div class="col-span-2 text-center pb-1">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Unidades</div>
+                        <div class="text-2xl font-extrabold text-emerald-800">${sumTotalUnitsStr}</div>
+                    </div>
+
+                    <!-- Separador Horizontal -->
+                    <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
+
+                    <!-- Item 2: Caixas -->
+                    <div class="text-center border-r border-emerald-200/50">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Caixas</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxesStr}</div>
+                    </div>
+
+                    <!-- Item 3: Peso Total -->
+                    <div class="text-center">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Liq. Total (kg)</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${sumWeightStr} kg</div>
+                    </div>
+
+                    <!-- Separador Horizontal -->
+                    <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
+
+                    <!-- Item 4: Peso Médio -->
+                    <div class="col-span-2 text-center">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Médio (g.unid)</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        // Helper (SEM BORDAS)
+        function createStatItem(iconName, value, label, highlight = false) {
+            const textColor = highlight ? 'text-emerald-800' : 'text-slate-700';
+            const labelColor = highlight ? 'text-emerald-600/70' : 'text-slate-400';
+            const iconColor = highlight ? 'text-emerald-600' : 'text-slate-400';
+            const bgColor = highlight ? 'bg-emerald-50/50' : 'bg-slate-50';
+
+            return `
+            <div class="flex flex-col items-center justify-center p-3 rounded-xl ${bgColor}">
+                <div class="mb-1 ${iconColor} icon-fix"><i data-lucide="${iconName}" width="14"></i></div>
+                <span class="text-xs font-bold ${textColor}">${value}</span>
+                <span class="text-[9px] uppercase tracking-wider font-semibold ${labelColor} mt-1 text-center leading-tight">${label}</span>
+            </div>
+            `;
+        }
+
+        // --- FUNÇÃO PARA GERAR TEXTO WHATSAPP ---
+        function copyToWhatsApp() {
+            if (harvestData.length === 0) {
+                alert("Adicione blocos primeiro para gerar o texto.");
+                return;
+            }
+
+            const greeting = getGreeting();
+            
+            // Data e Semana automáticas
+            const now = new Date();
+            const refDate = now.toLocaleDateString('pt-BR');
+            const weekNumber = getWeekNumber(now);
+            
+            // Obtém o dia da semana (ex: Sexta-feira)
+            let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+            // Capitaliza a primeira letra (sexta-feira -> Sexta-feira)
+            weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+            
+            const partnerInput = document.getElementById('partner');
+            let headerName = "Pessoal";
+            
+            if (partnerInput && partnerInput.value) {
+                headerName = partnerInput.value;
+            } else if (harvestData.length > 0 && harvestData[0].partner) {
+                headerName = harvestData[0].partner;
+            }
+            
+            let text = `${greeting}, ${headerName}!\n\n`;
+            // LINHA ALTERADA: Adicionado dia da semana
+            text += `Pesagem de ${weekday} ${refDate} - Semana ${weekNumber}\n\n`;
+
+            let totalKg = 0;
+            let totalBoxes = 0;
+            let totalUnits = 0;
+
+            harvestData.forEach(item => {
+                const weight = parsePTBRNumber(item.harvestWeight); // Peso Líquido Total
+                const boxes = parsePTBRNumber(item.boxes);
+                const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); // Unidades por Caixa MANUAL
+                const avgWeightG = parsePTBRNumber(item.averageWeight); // gramas por unidade (inteiro, ex: 391)
+                const units = parsePTBRNumber(item.totalUnits);
+
+                totalKg += weight;
+                totalBoxes += boxes;
+                totalUnits += units;
+
+                // Cálculos
+                let netKgPerBox = 0;
+                let kgPerUnit = 0; // em Kg (decimal)
+
+                if (boxes > 0) {
+                    netKgPerBox = weight / boxes; 
+                }
+                
+                // Converte média (gramas) para kg para exibição (ex: 391g -> 0.391kg)
+                kgPerUnit = avgWeightG / 1000; 
+
+                // Formatação Base
+                const weightStr = Math.round(weight).toString(); 
+                const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
+                const unitsPerBoxStr = Math.round(manualUnitsPerBox).toString(); 
+                const kgPerUnitStr = kgPerUnit.toFixed(3).replace('.', ','); // Ex: 0,391
+
+                // --- LÓGICA DE G vs KG NO TEXTO ---
+                let unitLabel = "g";
+                let unitText = "(G)";
+                
+                if (kgPerUnit >= 1) {
+                    unitLabel = "kg";
+                    unitText = "(KG)";
+                }
+
+                // Montagem da linha
+                text += `\`Bloco ${item.talhao}\`: ${weightStr} kg ( ${kgPerBoxStr} kg MÉDIA KG/CX ) - ( ${unitsPerBoxStr} un MÉDIA UNID/CX) - (${kgPerUnitStr} ${unitLabel} PESO MÉDIO ${unitText})\n`;
+            });
+
+            // Cálculo da média global em gramas
+            let globalAvgWeight = 0;
+            if (totalUnits > 0) {
+                globalAvgWeight = (totalKg * 1000) / totalUnits;
+            }
+            const globalAvgStr = Math.round(globalAvgWeight).toLocaleString('pt-BR');
+
+            // REORDENADO E NEGRITO
+            text += `\n*Total kg: ${Math.round(totalKg)}*`;
+            text += `\n*Total Unidades: ${totalUnits.toLocaleString('pt-BR')}*`;
+            text += `\n*Peso Médio: ${globalAvgStr} g.unid*`;
+            text += `\n*Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}*`;
+
+            // --- MÉTODO DE CÓPIA ROBUSTO ---
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    alert("Texto copiado para a área de transferência!");
+                } else {
+                    alert("Não foi possível copiar automaticamente. Tente selecionar e copiar manualmente.");
+                }
+            } catch (err) {
+                console.error("Erro ao copiar:", err);
+                alert("Erro ao copiar o texto.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // --- FUNÇÃO DE DOWNLOAD PDF (Manual - Estilo Mobile Simulado) ---
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('report-card');
+            const originalText = document.querySelector('button[onclick="downloadPDF()"] span').innerText;
+            document.querySelector('button[onclick="downloadPDF()"] span').innerText = "Gerando PDF...";
+
+            try {
+                // CONFIGURAÇÃO MANUAL IGUAL AO CÓDIGO FUNCIONAL:
+                // Forçamos a largura da janela para 480px (Mobile)
+                const canvas = await html2canvas(element, {
+                    scale: 2, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    scrollY: -window.scrollY,
+                    windowWidth: 480, // Mantido 480px conforme solicitado (estilo mobile esticado)
+                    onclone: (clonedDoc) => {
+                        const clonedElement = clonedDoc.getElementById('report-card');
+                        const clonedContent = clonedDoc.getElementById('reportContent');
+
+                        // Estilos para nitidez de fonte
+                        const style = clonedDoc.createElement('style');
+                        style.innerHTML = `
+                            * { 
+                                -webkit-font-smoothing: antialiased !important; 
+                                -moz-osx-font-smoothing: grayscale !important; 
+                            }
+                        `;
+                        clonedDoc.head.appendChild(style);
+
+                        if (clonedElement) {
+                            // Define largura para 450px conforme seu exemplo (estilo mobile esticado)
+                            clonedElement.style.width = '450px'; 
+                            clonedElement.style.maxWidth = 'none';
+                            clonedElement.style.height = 'auto'; 
+                            clonedElement.style.margin = '0';
+                            clonedElement.style.borderRadius = '0'; 
+                            clonedElement.style.border = 'none'; 
+                            clonedElement.style.boxShadow = 'none';
+                            clonedElement.style.overflow = 'visible';
+                        }
+
+                        if (clonedContent) {
+                            clonedContent.style.height = 'auto';
+                            clonedContent.style.overflow = 'visible';
+                            clonedContent.style.flex = 'none';
+                        }
+                    }
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+
+                // PDF com tamanho exato da imagem em alta resolução (100% preenchido)
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'px',
+                    format: [imgWidth, imgHeight]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const weekNum = getWeekNumber(now);
+                
+                // Dia da semana (Primeira letra maiúscula)
+                let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+                // Nome do Parceiro
+                const partnerInput = document.getElementById('partner');
+                let partnerName = "Geral"; // Padrão se não houver parceiro
+                
+                if (partnerInput && partnerInput.value) {
+                    partnerName = partnerInput.value;
+                } else if (harvestData.length > 0 && harvestData[0].partner) {
+                    partnerName = harvestData[0].partner;
+                }
+
+                // Nome final: Resumo da Pesagem (kg) - Sexta-feira 26-12-2025 Semana 52 - Sítio Leitão.pdf
+                const fileName = `Resumo da Pesagem (kg) - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
+
+                pdf.save(fileName);
+
+            } catch (err) {
+                alert("Erro ao gerar PDF: " + err);
+                console.error(err);
+            } finally {
+                document.querySelector('button[onclick="downloadPDF()"] span').innerText = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
