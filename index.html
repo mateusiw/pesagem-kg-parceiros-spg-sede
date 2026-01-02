@@ -78,7 +78,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parceiro</label>
-                            <select id="partner" required onchange="updateDynamicTitle()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                            <select id="partner" required onchange="updateDynamicTitle(); toggleInputMode()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                                 <option value="">Selecione...</option>
                                 <option value="SPG Oásis">SPG Oásis</option>
                                 <option value="Sítio Leitão">Sítio Leitão</option>
@@ -117,7 +117,7 @@
                     <div class="border-t border-slate-100 my-2 pt-2">
                         <label class="text-xs font-bold text-slate-400 block mb-3">Informações Adicionais</label>
                         
-                        <!-- Linha 1: Caixas e Peso Bruto (Reorganizado para facilitar) -->
+                        <!-- Linha 1: Caixas e Peso Bruto -->
                         <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Caixas</label>
@@ -129,28 +129,26 @@
                             </div>
                         </div>
 
-                        <!-- Linha 2: Taras (Caixa e Palete) -->
+                        <!-- Linha 2: Taras -->
                         <div class="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
-                                <!-- Formatação decimal para taras -->
                                 <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Pallet (kg)</label>
-                                <!-- Formatação decimal para taras -->
                                 <input type="text" id="palletTare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 25" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
 
-                        <!-- Linha 3: Peso Liq e Unidades (MANUAL) -->
+                        <!-- Linha 3: Peso Liq e Unidades (Condicional) -->
                          <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
                                 <input type="text" id="harvestWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                             </div>
                              <div>
-                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Média Unid. p/ Caixa</label>
+                                <label id="labelUnitsPerBox" class="text-[10px] font-bold text-slate-500 mb-1 block">Média Unid. p/ Caixa</label>
                                 <input type="text" id="unitsPerBox" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 18" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
@@ -158,7 +156,7 @@
                         <!-- Linha 4: Total Unid e Média -->
                         <div class="grid grid-cols-2 gap-3 mb-2">
                              <div>
-                                <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Total Unidades</label>
+                                <label id="labelTotalUnits" class="text-[10px] font-bold text-emerald-600 mb-1 block">Total Unidades</label>
                                 <input type="text" id="totalUnits" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                             </div>
                             <div>
@@ -169,7 +167,7 @@
 
                         <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
                             <span>* Liq = Bruto - (Caixas x Tara Cx) - Tara Pallet</span>
-                            <span>* Total Unid = Caixas x Unid. p/ Caixa</span>
+                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
                         </div>
                     </div>
 
@@ -295,25 +293,95 @@
             dateElement.innerText = `Data: ${day}/${month}/${year} - ${timeString} - Semana ${weekNumber}`;
         }
 
+        // --- LOGICA DE FORMULARIO DINAMICO (SPG OASIS) ---
+        function toggleInputMode() {
+            const partner = document.getElementById('partner').value;
+            
+            const totalUnitsInput = document.getElementById('totalUnits');
+            const unitsPerBoxInput = document.getElementById('unitsPerBox');
+            
+            const labelTotalUnits = document.getElementById('labelTotalUnits');
+            const labelUnitsPerBox = document.getElementById('labelUnitsPerBox');
+
+            if (partner === 'SPG Oásis') {
+                // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
+                
+                // Habilitar Total Unidades
+                totalUnitsInput.removeAttribute('readonly');
+                totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800'); 
+                totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800'); 
+                totalUnitsInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
+                totalUnitsInput.placeholder = "Ex: 5000";
+                
+                // Label Total
+                labelTotalUnits.classList.remove('text-emerald-600');
+                labelTotalUnits.classList.add('text-slate-500');
+                labelTotalUnits.innerText = "Total Unidades (Manual)";
+
+                // Bloquear Média Unidades
+                unitsPerBoxInput.setAttribute('readonly', true);
+                unitsPerBoxInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                unitsPerBoxInput.classList.remove('bg-white', 'border-slate-300');
+                unitsPerBoxInput.removeAttribute('oninput');
+                unitsPerBoxInput.placeholder = "Calc. Auto";
+
+                // Label Média
+                labelUnitsPerBox.classList.add('text-emerald-600');
+                labelUnitsPerBox.classList.remove('text-slate-500');
+                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa (Auto)";
+
+            } else {
+                // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
+
+                // Bloquear Total Unidades
+                totalUnitsInput.setAttribute('readonly', true);
+                totalUnitsInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
+                totalUnitsInput.removeAttribute('oninput');
+                totalUnitsInput.placeholder = "Calc. Auto";
+
+                // Label Total
+                labelTotalUnits.classList.add('text-emerald-600');
+                labelTotalUnits.classList.remove('text-slate-500');
+                labelTotalUnits.innerText = "Total Unidades - Auto";
+
+                // Habilitar Média Unidades
+                unitsPerBoxInput.removeAttribute('readonly');
+                unitsPerBoxInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                unitsPerBoxInput.classList.add('bg-white', 'border-slate-300');
+                unitsPerBoxInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
+                unitsPerBoxInput.placeholder = "Ex: 18";
+
+                // Label Média
+                labelUnitsPerBox.classList.remove('text-emerald-600');
+                labelUnitsPerBox.classList.add('text-slate-500');
+                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
+            }
+            
+            // Recalcula para garantir consistência
+            calculateValues();
+        }
+
         // --- FUNÇÕES DE CÁLCULO ---
 
         function calculateValues() {
+            const partner = document.getElementById('partner').value; // Verifica parceiro para saber o modo de cálculo
+            
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
             const tare = parsePTBRNumber(document.getElementById('tare').value);
-            const palletTare = parsePTBRNumber(document.getElementById('palletTare').value); // NOVA TARA
+            const palletTare = parsePTBRNumber(document.getElementById('palletTare').value);
             const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
-            const unitsPerBox = parsePTBRNumber(document.getElementById('unitsPerBox').value);
             
-            // Outputs
             const netWeightInput = document.getElementById('harvestWeight');
             const totalUnitsInput = document.getElementById('totalUnits');
+            const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const avgInput = document.getElementById('averageWeight');
 
-            // 1. Calcular Peso Líquido (Gross - (TaraCx * Boxes) - TaraPalete)
+            // 1. Calcular Peso Líquido (Igual para ambos)
             let netWeight = 0;
             if (grossWeight > 0) {
                 const totalBoxTare = boxes * tare;
-                const totalTare = totalBoxTare + palletTare; // Soma tara caixas + tara palete
+                const totalTare = totalBoxTare + palletTare; 
                 netWeight = Math.max(0, grossWeight - totalTare);
                 netWeightInput.value = Math.round(netWeight);
                 formatNumberInput(netWeightInput);
@@ -321,17 +389,36 @@
                 netWeightInput.value = "";
             }
 
-            // 2. Calcular Total Unidades (Boxes * Unid/Box)
+            // 2. Lógica de Unidades (Diferente por Parceiro)
             let totalUnits = 0;
-            if (boxes > 0 && unitsPerBox > 0) {
-                totalUnits = boxes * unitsPerBox;
-                totalUnitsInput.value = Math.round(totalUnits);
-                formatNumberInput(totalUnitsInput);
+            let unitsPerBox = 0;
+
+            if (partner === 'SPG Oásis') {
+                // MODO: Total Manual -> Calcula Média
+                totalUnits = parsePTBRNumber(totalUnitsInput.value); // Pega do input manual
+                
+                if (boxes > 0 && totalUnits > 0) {
+                    unitsPerBox = totalUnits / boxes;
+                    // Mostra com 1 casa decimal
+                    unitsPerBoxInput.value = unitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+                } else {
+                    unitsPerBoxInput.value = "";
+                }
             } else {
-                totalUnitsInput.value = "";
+                // MODO PADRÃO: Média Manual -> Calcula Total
+                unitsPerBox = parsePTBRNumber(unitsPerBoxInput.value); // Pega do input manual
+                
+                if (boxes > 0 && unitsPerBox > 0) {
+                    totalUnits = boxes * unitsPerBox;
+                    totalUnitsInput.value = Math.round(totalUnits);
+                    formatNumberInput(totalUnitsInput);
+                } else {
+                    totalUnitsInput.value = "";
+                }
             }
 
-            // 3. Calcular Média (Peso Líquido * 1000 / Total Unidades)
+            // 3. Calcular Peso Médio Unitário (Igual para ambos)
+            // (Peso Líquido * 1000) / Total Unidades
             if (totalUnits > 0 && netWeight > 0) {
                 const avgG = (netWeight * 1000) / totalUnits;
                 avgInput.value = Math.round(avgG);
@@ -344,10 +431,7 @@
         // Permite dígitos e vírgula para campos decimais (ex: Tara)
         function formatDecimalInput(input) {
             let value = input.value;
-            // Remove tudo que não for número ou vírgula
             value = value.replace(/[^0-9,]/g, '');
-            
-            // Garante que só exista uma vírgula
             const parts = value.split(',');
             if (parts.length > 2) {
                 value = parts[0] + ',' + parts.slice(1).join('');
@@ -408,15 +492,13 @@
         }
 
         function clearBlockForm() {
-            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
-            document.getElementById('tare').value = ''; // Limpa tara caixa (era '2')
-            document.getElementById('palletTare').value = ''; // Limpa tara palete
+            document.getElementById('tare').value = ''; 
+            document.getElementById('palletTare').value = ''; 
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
             
-            // Calculados
             document.getElementById('totalUnits').value = '';
             document.getElementById('averageWeight').value = ''; 
             document.getElementById('harvestWeight').value = ''; 
@@ -424,7 +506,8 @@
             const varietySelect = document.getElementById('variety');
             varietySelect.selectedIndex = 0;
             updateCommercialInput(); 
-            updateDynamicTitle(); // Atualiza título (vai manter o nome do parceiro se estiver selecionado)
+            updateDynamicTitle(); 
+            toggleInputMode(); // Reset to current partner mode
 
             editingIndex = -1;
             const submitBtn = document.getElementById('submitBtn');
@@ -446,20 +529,22 @@
             editingIndex = index; 
 
             document.getElementById('partner').value = item.partner;
+            toggleInputMode(); // Configure inputs based on loaded partner
+
             document.getElementById('talhao').value = item.talhao;
             document.getElementById('variety').value = item.variety;
             updateCommercialInput(); 
             document.getElementById('commercialVariety').value = item.commercialVariety;
             
             document.getElementById('boxes').value = item.boxes;
-            document.getElementById('tare').value = item.tare || ''; // Carrega vazio se não tiver
-            document.getElementById('palletTare').value = item.palletTare || ''; // Carrega tara palete
+            document.getElementById('tare').value = item.tare || ''; 
+            document.getElementById('palletTare').value = item.palletTare || ''; 
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
+            document.getElementById('totalUnits').value = item.totalUnits || ''; // Explicitly set totalUnits as it might be an input now
             
-            // Recalcula campos dependentes
-            calculateValues();
-            updateDynamicTitle(); // Atualiza título com o parceiro sendo editado
+            calculateValues(); // Recalculate to ensure UI consistency
+            updateDynamicTitle(); 
             
             const submitBtn = document.getElementById('submitBtn');
             const formTitle = document.getElementById('formTitle');
@@ -496,7 +581,7 @@
                 boxes: document.getElementById('boxes').value,
                 
                 tare: tareRaw,
-                palletTare: palletTareRaw, // Salva tara palete
+                palletTare: palletTareRaw, 
                 grossWeight: grossWeightRaw,
                 unitsPerBox: unitsPerBoxRaw,
                 
@@ -580,8 +665,6 @@
             let sumBoxes = 0;
             let sumWeight = 0;
             let sumTotalUnits = 0;
-            // let sumAvgWeight = 0; // Removido pois não usaremos média das médias
-            // let countAvgWeight = 0; // Removido
 
             if (harvestData.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full min-h-[300px] flex flex-col items-center justify-center">
@@ -600,21 +683,13 @@
                     sumWeight += weightVal;
                     sumTotalUnits += totalUnitsVal;
 
-                    // const currentAvg = parsePTBRNumber(item.averageWeight);
-                    // if (currentAvg > 0) {
-                    //     sumAvgWeight += currentAvg;
-                    //     countAvgWeight++;
-                    // }
-
                     // --- CÁLCULO DA MÉDIA KG POR CAIXA PARA O CARD ---
                     let avgKgBoxStr = "-";
                     if (boxesVal > 0) {
-                        // Calcula média com 1 casa decimal (ex: 8,5)
                         const avgKgBox = weightVal / boxesVal;
                         avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
                     }
 
-                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3)
                     // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3 - Agora com 5 itens)
                     const html = `
                     <div class="p-5 hover:bg-slate-50 transition-colors group">
@@ -632,16 +707,17 @@
                             </div>
                         </div>
 
-                        <!-- Grid de Estatísticas (5 Itens agora) -->
+                        <!-- Grid de Estatísticas (6 Itens agora) -->
                         <div class="grid grid-cols-3 gap-2"> 
                             
                             <!-- Linha 1: Dados da Embalagem -->
-                            ${createStatItem('box', item.boxes, 'Caixas', true)}
-                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'Média Kg/Cx')}
-                            ${createStatItem('layers', item.unitsPerBox + ' un', 'Média Unid/Cx')}
+                            ${createStatItem('box', item.boxes, 'Caixas')}
+                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'MÉDIA KG POR CAIXA')}
+                            ${createStatItem('layers', item.unitsPerBox + ' un', 'MÉDIA UNIDADES POR CAIXA')}
 
                             <!-- Linha 2: Totais Finais -->
-                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq')}
+                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
+                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
                             ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
                             
                         </div>
@@ -661,7 +737,6 @@
             if (sumTotalUnits > 0) {
                 finalAvgWeight = (sumWeight * 1000) / sumTotalUnits;
             }
-            // Arredonda para inteiro para exibição em gramas
             const finalAvgWeightStr = Math.round(finalAvgWeight).toLocaleString('pt-BR');
 
             footerContainer.innerHTML = `
@@ -671,23 +746,27 @@
                     <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100/50 rounded-full -mr-8 -mt-8 pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100/50 rounded-full -ml-6 -mb-6 pointer-events-none"></div>
 
-                    <!-- Item 2: Caixas -->
+                    <!-- Linha 1: Total Unidades e Peso Liq. Total (Lado a Lado) -->
                     <div class="text-center border-r border-emerald-200/50">
-                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Caixas</div>
-                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxesStr}</div>
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Unidades</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumTotalUnitsStr}</div>
                     </div>
 
-                    <!-- Item 3: Peso Total -->
                     <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Liq. Total (kg)</div>
-                        <div class="text-lg font-extrabold text-emerald-800">${sumWeightStr} kg</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr} kg</div>
                     </div>
 
                     <!-- Separador Horizontal -->
                     <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
 
-                    <!-- Item 4: Peso Médio -->
-                    <div class="col-span-2 text-center">
+                    <!-- Linha 2: Total Caixas e Peso Médio (Lado a Lado) -->
+                    <div class="text-center border-r border-emerald-200/50">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Caixas</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxesStr}</div>
+                    </div>
+
+                    <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Médio (g.unid)</div>
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
@@ -721,15 +800,10 @@
             }
 
             const greeting = getGreeting();
-            
-            // Data e Semana automáticas
             const now = new Date();
             const refDate = now.toLocaleDateString('pt-BR');
             const weekNumber = getWeekNumber(now);
-            
-            // Obtém o dia da semana (ex: Sexta-feira)
             let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
-            // Capitaliza a primeira letra (sexta-feira -> Sexta-feira)
             weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
             
             const partnerInput = document.getElementById('partner');
@@ -742,7 +816,6 @@
             }
             
             let text = `${greeting}, ${headerName}!\n\n`;
-            // LINHA ALTERADA: Adicionado dia da semana
             text += `Pesagem de ${weekday} ${refDate} - Semana ${weekNumber}\n\n`;
 
             let totalKg = 0;
@@ -750,34 +823,30 @@
             let totalUnits = 0;
 
             harvestData.forEach(item => {
-                const weight = parsePTBRNumber(item.harvestWeight); // Peso Líquido Total
+                const weight = parsePTBRNumber(item.harvestWeight); 
                 const boxes = parsePTBRNumber(item.boxes);
-                const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); // Unidades por Caixa MANUAL
-                const avgWeightG = parsePTBRNumber(item.averageWeight); // gramas por unidade (inteiro, ex: 391)
+                const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); 
+                const avgWeightG = parsePTBRNumber(item.averageWeight); 
                 const units = parsePTBRNumber(item.totalUnits);
 
                 totalKg += weight;
                 totalBoxes += boxes;
                 totalUnits += units;
 
-                // Cálculos
                 let netKgPerBox = 0;
-                let kgPerUnit = 0; // em Kg (decimal)
+                let kgPerUnit = 0; 
 
                 if (boxes > 0) {
                     netKgPerBox = weight / boxes; 
                 }
                 
-                // Converte média (gramas) para kg para exibição (ex: 391g -> 0.391kg)
                 kgPerUnit = avgWeightG / 1000; 
 
-                // Formatação Base
                 const weightStr = Math.round(weight).toString(); 
                 const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
-                const unitsPerBoxStr = Math.round(manualUnitsPerBox).toString(); 
-                const kgPerUnitStr = kgPerUnit.toFixed(3).replace('.', ','); // Ex: 0,391
+                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); // Pode ser decimal agora
+                const kgPerUnitStr = kgPerUnit.toFixed(3).replace('.', ','); 
 
-                // --- LÓGICA DE G vs KG NO TEXTO ---
                 let unitLabel = "g";
                 let unitText = "(G)";
                 
@@ -786,24 +855,20 @@
                     unitText = "(KG)";
                 }
 
-                // Montagem da linha
                 text += `\`Bloco ${item.talhao}\`: ${weightStr} kg ( ${kgPerBoxStr} kg MÉDIA KG/CX ) - ( ${unitsPerBoxStr} un MÉDIA UNID/CX) - (${kgPerUnitStr} ${unitLabel} PESO MÉDIO ${unitText})\n`;
             });
 
-            // Cálculo da média global em gramas
             let globalAvgWeight = 0;
             if (totalUnits > 0) {
                 globalAvgWeight = (totalKg * 1000) / totalUnits;
             }
             const globalAvgStr = Math.round(globalAvgWeight).toLocaleString('pt-BR');
 
-            // REORDENADO E NEGRITO
             text += `\n*Total kg: ${Math.round(totalKg)}*`;
             text += `\n*Total Unidades: ${totalUnits.toLocaleString('pt-BR')}*`;
             text += `\n*Peso Médio: ${globalAvgStr} g.unid*`;
             text += `\n*Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}*`;
 
-            // --- MÉTODO DE CÓPIA ROBUSTO ---
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed";
@@ -835,19 +900,16 @@
             document.querySelector('button[onclick="downloadPDF()"] span').innerText = "Gerando PDF...";
 
             try {
-                // CONFIGURAÇÃO MANUAL IGUAL AO CÓDIGO FUNCIONAL:
-                // Forçamos a largura da janela para 480px (Mobile)
                 const canvas = await html2canvas(element, {
                     scale: 2, 
                     useCORS: true, 
                     allowTaint: true,
                     scrollY: -window.scrollY,
-                    windowWidth: 480, // Mantido 480px conforme solicitado (estilo mobile esticado)
+                    windowWidth: 480, 
                     onclone: (clonedDoc) => {
                         const clonedElement = clonedDoc.getElementById('report-card');
                         const clonedContent = clonedDoc.getElementById('reportContent');
 
-                        // Estilos para nitidez de fonte
                         const style = clonedDoc.createElement('style');
                         style.innerHTML = `
                             * { 
@@ -858,7 +920,6 @@
                         clonedDoc.head.appendChild(style);
 
                         if (clonedElement) {
-                            // Define largura para 450px conforme seu exemplo (estilo mobile esticado)
                             clonedElement.style.width = '450px'; 
                             clonedElement.style.maxWidth = 'none';
                             clonedElement.style.height = 'auto'; 
@@ -881,7 +942,6 @@
                 const imgWidth = canvas.width;
                 const imgHeight = canvas.height;
 
-                // PDF com tamanho exato da imagem em alta resolução (100% preenchido)
                 const pdf = new jsPDF({
                     orientation: 'p',
                     unit: 'px',
@@ -890,18 +950,15 @@
 
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
                 const now = new Date();
                 const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
                 const weekNum = getWeekNumber(now);
                 
-                // Dia da semana (Primeira letra maiúscula)
                 let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
                 weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
 
-                // Nome do Parceiro
                 const partnerInput = document.getElementById('partner');
-                let partnerName = "Geral"; // Padrão se não houver parceiro
+                let partnerName = "Geral"; 
                 
                 if (partnerInput && partnerInput.value) {
                     partnerName = partnerInput.value;
@@ -909,7 +966,6 @@
                     partnerName = harvestData[0].partner;
                 }
 
-                // Nome final: Resumo da Pesagem (kg) - Sexta-feira 26-12-2025 Semana 52 - Sítio Leitão.pdf
                 const fileName = `Resumo da Pesagem (kg) - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
 
                 pdf.save(fileName);
