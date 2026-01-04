@@ -192,11 +192,13 @@
         <!-- PREVIEW -->
         <div class="w-full lg:w-2/3 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
             
-            <div id="report-card" class="w-full flex-1 flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
+            <!-- AJUSTE VISUAL: REMOVIDO ARREDONDAMENTO 'rounded-3xl' para 'rounded-none' PARA IGUALAR PDF -->
+            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
                 
-                <!-- Cabeçalho -->
-                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3">
-                    <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0">
+                <!-- Cabeçalho - ADICIONADO antialiased para nitidez -->
+                <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
+                    <!-- AJUSTE DE LOGO: ADICIONADO style para contraste de imagem -->
+                    <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
                         <h2 id="reportTitle" class="text-base font-bold leading-snug tracking-normal">
                             <!-- Injetado via JS -->
@@ -282,11 +284,9 @@
 
             // LOGICA NOVA: Nome do Parceiro Dinâmico
             const partnerInput = document.getElementById('partner');
-            // Se tiver valor no select, usa ele. Se não, usa "Pessoal"
             const partnerName = (partnerInput && partnerInput.value) ? partnerInput.value : 'Pessoal';
 
             const titleElement = document.getElementById('reportTitle');
-            // Título dinâmico com o nome do parceiro
             titleElement.innerHTML = `${greeting}, ${partnerName}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
 
             const dateElement = document.getElementById('headerDateTime');
@@ -492,6 +492,7 @@
         }
 
         function clearBlockForm() {
+            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
             document.getElementById('tare').value = ''; 
@@ -672,7 +673,7 @@
                     <span>Adicione dados no formulário ao lado para visualizar.</span>
                 </div>`;
             } else {
-                harvestData.forEach(item => {
+                harvestData.forEach((item, index) => { // Added index parameter
                     const displayVariety = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
                     
                     const boxesVal = parsePTBRNumber(item.boxes);
@@ -690,13 +691,45 @@
                         avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
                     }
 
-                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS (Grid 2x3 - Agora com 5 itens)
+                    // LÓGICA DE EXIBIÇÃO DA TAG DO PARCEIRO
+                    const showPartnerTag = (item.partner !== 'SPG Oásis') || (index === 0);
+
+                    // DEFINIÇÃO DO CONTEÚDO DO GRID BASEADO NO PARCEIRO
+                    let statsContent = '';
+                    
+                    if (item.partner === 'SPG Oásis') {
+                        // Layout simplificado para SPG Oásis (Apenas 3 itens)
+                        statsContent = `
+                        <div class="grid grid-cols-3 gap-2">
+                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
+                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
+                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
+                        </div>
+                        `;
+                    } else {
+                        // Layout completo para outros parceiros (6 itens)
+                        statsContent = `
+                        <div class="grid grid-cols-3 gap-2"> 
+                            <!-- Linha 1: Dados da Embalagem -->
+                            ${createStatItem('box', item.boxes, 'Caixas')}
+                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'MÉDIA KG POR CAIXA')}
+                            ${createStatItem('layers', item.unitsPerBox + ' un', 'MÉDIA UNIDADES POR CAIXA')}
+
+                            <!-- Linha 2: Totais Finais -->
+                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
+                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
+                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
+                        </div>
+                        `;
+                    }
+
+                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS
                     const html = `
                     <div class="p-5 hover:bg-slate-50 transition-colors group">
                         
                         <!-- 1. TOPO: PARCEIRO, TÍTULO + TAG -->
                         <div class="flex flex-col mb-3">
-                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>
+                            ${showPartnerTag ? `<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>` : ''}
                             <div class="flex items-center justify-between">
                                 <span class="text-base font-bold text-slate-800 leading-normal">
                                     Bloco ${item.talhao}
@@ -707,20 +740,9 @@
                             </div>
                         </div>
 
-                        <!-- Grid de Estatísticas (6 Itens agora) -->
-                        <div class="grid grid-cols-3 gap-2"> 
-                            
-                            <!-- Linha 1: Dados da Embalagem -->
-                            ${createStatItem('box', item.boxes, 'Caixas')}
-                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'MÉDIA KG POR CAIXA')}
-                            ${createStatItem('layers', item.unitsPerBox + ' un', 'MÉDIA UNIDADES POR CAIXA')}
+                        <!-- Grid de Estatísticas (Injetado condicionalmente) -->
+                        ${statsContent}
 
-                            <!-- Linha 2: Totais Finais -->
-                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
-                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
-                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
-                            
-                        </div>
                     </div>
                     `;
                     container.innerHTML += html;
@@ -900,65 +922,66 @@
             document.querySelector('button[onclick="downloadPDF()"] span').innerText = "Gerando PDF...";
 
             try {
-                const canvas = await html2canvas(element, {
-                    scale: 2, 
-                    useCORS: true, 
+                // 1. Configurar opções para captura de ALTA FIDELIDADE
+                const options = {
+                    scale: 3, // 3x a resolução original (Retina Quality)
+                    useCORS: true,
                     allowTaint: true,
                     scrollY: -window.scrollY,
-                    windowWidth: 480, 
-                    onclone: (clonedDoc) => {
-                        const clonedElement = clonedDoc.getElementById('report-card');
-                        const clonedContent = clonedDoc.getElementById('reportContent');
-
-                        const style = clonedDoc.createElement('style');
-                        style.innerHTML = `
-                            * { 
-                                -webkit-font-smoothing: antialiased !important; 
-                                -moz-osx-font-smoothing: grayscale !important; 
-                            }
-                        `;
-                        clonedDoc.head.appendChild(style);
-
-                        if (clonedElement) {
-                            clonedElement.style.width = '450px'; 
-                            clonedElement.style.maxWidth = 'none';
-                            clonedElement.style.height = 'auto'; 
-                            clonedElement.style.margin = '0';
-                            clonedElement.style.borderRadius = '0'; 
-                            clonedElement.style.border = 'none'; 
-                            clonedElement.style.boxShadow = 'none';
-                            clonedElement.style.overflow = 'visible';
+                    backgroundColor: '#ffffff', // Garante fundo branco
+                    windowWidth: 480, // Força renderização como mobile
+                    onclone: (doc) => {
+                        const el = doc.getElementById('report-card');
+                        const content = doc.getElementById('reportContent');
+                        
+                        // Força estilos para renderização perfeita
+                        if (el) { 
+                            el.style.width = '450px'; // Largura fixa ideal para mobile
+                            el.style.maxWidth = '450px';
+                            el.style.margin = '0'; 
+                            el.style.boxShadow = 'none';
+                            el.style.borderRadius = '0';
+                            el.style.border = 'none';
                         }
-
-                        if (clonedContent) {
-                            clonedContent.style.height = 'auto';
-                            clonedContent.style.overflow = 'visible';
-                            clonedContent.style.flex = 'none';
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
                         }
                     }
-                });
+                };
 
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
+                const canvas = await html2canvas(element, options);
+                
+                // 2. Dimensões do PDF
+                // O truque da nitidez: O PDF tem o tamanho VISUAL do elemento (ex: 450px)
+                // Mas a imagem inserida nele tem 3x essa resolução (do scale: 3)
+                const imgWidth = 450; // Largura fixa em "pontos" do PDF
+                const pageHeight = (canvas.height * imgWidth) / canvas.width; // Altura proporcional
 
                 const pdf = new jsPDF({
                     orientation: 'p',
                     unit: 'px',
-                    format: [imgWidth, imgHeight]
+                    format: [imgWidth, pageHeight], // Tamanho da folha igual ao tamanho visual
+                    hotfixes: ['px_scaling'] // CRÍTICO: Corrige escala em diferentes dispositivos
                 });
 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                // 3. Inserir imagem de alta resolução compactada no tamanho visual
+                const imgData = canvas.toDataURL('image/png'); // PNG para texto nítido (sem artefatos de JPG)
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
 
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
                 const now = new Date();
                 const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
                 const weekNum = getWeekNumber(now);
                 
+                // Dia da semana (Primeira letra maiúscula)
                 let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
                 weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
 
+                // Nome do Parceiro
                 const partnerInput = document.getElementById('partner');
-                let partnerName = "Geral"; 
+                let partnerName = "Geral"; // Padrão se não houver parceiro
                 
                 if (partnerInput && partnerInput.value) {
                     partnerName = partnerInput.value;
@@ -966,13 +989,14 @@
                     partnerName = harvestData[0].partner;
                 }
 
+                // Nome final: Resumo da Pesagem (kg) - Sexta-feira 26-12-2025 Semana 52 - Sítio Leitão.pdf
                 const fileName = `Resumo da Pesagem (kg) - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
 
                 pdf.save(fileName);
 
             } catch (err) {
-                alert("Erro ao gerar PDF: " + err);
-                console.error(err);
+                console.error("Erro ao gerar PDF:", err);
+                alert("Erro ao gerar PDF: " + err.message);
             } finally {
                 document.querySelector('button[onclick="downloadPDF()"] span').innerText = originalText;
             }
