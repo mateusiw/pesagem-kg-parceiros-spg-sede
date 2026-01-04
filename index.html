@@ -192,7 +192,6 @@
         <!-- PREVIEW -->
         <div class="w-full lg:w-2/3 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
             
-            <!-- AJUSTE VISUAL: REMOVIDO ARREDONDAMENTO 'rounded-3xl' para 'rounded-none' PARA IGUALAR PDF -->
             <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
                 
                 <!-- Cabeçalho - ADICIONADO antialiased para nitidez -->
@@ -694,21 +693,8 @@
                     // LÓGICA DE EXIBIÇÃO DA TAG DO PARCEIRO
                     const showPartnerTag = (item.partner !== 'SPG Oásis') || (index === 0);
 
-                    // DEFINIÇÃO DO CONTEÚDO DO GRID BASEADO NO PARCEIRO
-                    let statsContent = '';
-                    
-                    if (item.partner === 'SPG Oásis') {
-                        // Layout simplificado para SPG Oásis (Apenas 3 itens)
-                        statsContent = `
-                        <div class="grid grid-cols-3 gap-2">
-                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
-                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
-                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
-                        </div>
-                        `;
-                    } else {
-                        // Layout completo para outros parceiros (6 itens)
-                        statsContent = `
+                    // DEFINIÇÃO DO CONTEÚDO DO GRID (Agora padrão completo para todos)
+                    const statsContent = `
                         <div class="grid grid-cols-3 gap-2"> 
                             <!-- Linha 1: Dados da Embalagem -->
                             ${createStatItem('box', item.boxes, 'Caixas')}
@@ -720,8 +706,7 @@
                             ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
                             ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
                         </div>
-                        `;
-                    }
+                    `;
 
                     // AJUSTE: LAYOUT COM NOVAS MÉDIAS
                     const html = `
@@ -740,7 +725,7 @@
                             </div>
                         </div>
 
-                        <!-- Grid de Estatísticas (Injetado condicionalmente) -->
+                        <!-- Grid de Estatísticas -->
                         ${statsContent}
 
                     </div>
@@ -864,7 +849,7 @@
                 
                 kgPerUnit = avgWeightG / 1000; 
 
-                const weightStr = Math.round(weight).toString(); 
+                const weightStr = Math.round(weight).toLocaleString('pt-BR'); // Fixed formatting here
                 const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
                 const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); // Pode ser decimal agora
                 const kgPerUnitStr = kgPerUnit.toFixed(3).replace('.', ','); 
@@ -877,7 +862,11 @@
                     unitText = "(KG)";
                 }
 
-                text += `\`Bloco ${item.talhao}\`: ${weightStr} kg ( ${kgPerBoxStr} kg MÉDIA KG/CX ) - ( ${unitsPerBoxStr} un MÉDIA UNID/CX) - (${kgPerUnitStr} ${unitLabel} PESO MÉDIO ${unitText})\n`;
+                text += `\`Bloco ${item.talhao}\`\n\n`;
+                text += `*Peso (kg):* ${weightStr} kg\n\n`;
+                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr} ${unitLabel}\n\n`; 
+                text += `*Kg por Caixa:* ${kgPerBoxStr} kg\n\n`;
+                text += `*Unidades por Caixa:* ${unitsPerBoxStr} un\n\n\n`;
             });
 
             let globalAvgWeight = 0;
@@ -886,10 +875,10 @@
             }
             const globalAvgStr = Math.round(globalAvgWeight).toLocaleString('pt-BR');
 
-            text += `\n*Total kg: ${Math.round(totalKg)}*`;
-            text += `\n*Total Unidades: ${totalUnits.toLocaleString('pt-BR')}*`;
-            text += `\n*Peso Médio: ${globalAvgStr} g.unid*`;
-            text += `\n*Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}*`;
+            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`; // Fixed formatting here
+            text += `\`Total Unidades: ${totalUnits.toLocaleString('pt-BR')}\`\n\n`;
+            text += `\`Peso Médio: ${globalAvgStr} g.unid\`\n\n`;
+            text += `\`Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}\``;
 
             const textArea = document.createElement("textarea");
             textArea.value = text;
