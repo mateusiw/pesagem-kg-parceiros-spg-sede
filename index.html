@@ -125,7 +125,8 @@
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
-                                <input type="text" id="grossWeight" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <!-- ALTERADO: formatDecimalInput para aceitar vírgula (18,3) -->
+                                <input type="text" id="grossWeight" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
 
@@ -382,8 +383,11 @@
                 const totalBoxTare = boxes * tare;
                 const totalTare = totalBoxTare + palletTare; 
                 netWeight = Math.max(0, grossWeight - totalTare);
-                netWeightInput.value = Math.round(netWeight);
-                formatNumberInput(netWeightInput);
+                
+                // ALTERAÇÃO: Exibir com decimais se houver (não usar Math.round)
+                // Se for inteiro (ex: 18.0), mostra sem vírgula. Se for decimal (18.3), mostra com vírgula.
+                netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+                // formatNumberInput(netWeightInput); // REMOVIDO pois remove a vírgula
             } else {
                 netWeightInput.value = "";
             }
@@ -416,12 +420,12 @@
                 }
             }
 
-            // 3. Calcular Peso Médio Unitário (Igual para ambos)
-            // (Peso Líquido * 1000) / Total Unidades
+            // 3. Calcular Peso Médio Unitário (Visual: 0,xxx)
             if (totalUnits > 0 && netWeight > 0) {
-                const avgG = (netWeight * 1000) / totalUnits;
-                avgInput.value = Math.round(avgG);
-                formatNumberInput(avgInput);
+                // Cálculo direto em KG (ex: 41 / 175 = 0.23428)
+                const avgKg = netWeight / totalUnits;
+                // Formata para 3 casas (0,234)
+                avgInput.value = avgKg.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             } else {
                 avgInput.value = "";
             }
@@ -678,6 +682,7 @@
                     const boxesVal = parsePTBRNumber(item.boxes);
                     const weightVal = parsePTBRNumber(item.harvestWeight); // Peso Líquido
                     const totalUnitsVal = parsePTBRNumber(item.totalUnits);
+                    const avgValG = parsePTBRNumber(item.averageWeight); // Peso Médio agora é 0.234
 
                     sumBoxes += boxesVal;
                     sumWeight += weightVal;
@@ -690,6 +695,13 @@
                         avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
                     }
 
+                    // --- FORMATAÇÃO DO PESO MÉDIO (0,XXX g) ---
+                    let avgWeightFormatted = "-";
+                    if (avgValG > 0) {
+                        // Value is already 0.234 (kg fraction), format to string
+                        avgWeightFormatted = avgValG.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                    }
+
                     // LÓGICA DE EXIBIÇÃO DA TAG DO PARCEIRO
                     const showPartnerTag = (item.partner !== 'SPG Oásis') || (index === 0);
 
@@ -698,13 +710,16 @@
                         <div class="grid grid-cols-3 gap-2"> 
                             <!-- Linha 1: Dados da Embalagem -->
                             ${createStatItem('box', item.boxes, 'Caixas')}
-                            ${createStatItem('package-check', avgKgBoxStr + ' kg', 'MÉDIA KG POR CAIXA')}
-                            ${createStatItem('layers', item.unitsPerBox + ' un', 'MÉDIA UNIDADES POR CAIXA')}
+                            <!-- AJUSTE: Removidas as siglas + ' kg' e + ' un' -->
+                            ${createStatItem('package-check', avgKgBoxStr, 'MÉDIA KG POR CAIXA')}
+                            ${createStatItem('layers', item.unitsPerBox, 'MÉDIA UNIDADES POR CAIXA')}
 
                             <!-- Linha 2: Totais Finais -->
-                            ${createStatItem('weight', item.harvestWeight + ' kg', 'Peso Total Liq', true)}
-                            ${createStatItem('hash', item.totalUnits, 'Total Unidades')}
-                            ${createStatItem('scale', item.averageWeight + ' g', 'Peso Médio (g)')}
+                            <!-- AJUSTE: Removida a sigla + ' kg' -->
+                            ${createStatItem('weight', item.harvestWeight, 'PESO (KG)', true)}
+                            ${createStatItem('hash', item.totalUnits, 'Unidades')}
+                            <!-- AJUSTE: Removida a sigla + ' g' -->
+                            ${createStatItem('scale', avgWeightFormatted, 'PESO MÉDIO (G/UNID.)')}
                         </div>
                     `;
 
@@ -742,9 +757,11 @@
             // CORREÇÃO: Cálculo da média ponderada real (Peso Total / Total Unidades)
             let finalAvgWeight = 0;
             if (sumTotalUnits > 0) {
-                finalAvgWeight = (sumWeight * 1000) / sumTotalUnits;
+                // sumWeight is in kg. result is kg/unit (0.234)
+                finalAvgWeight = sumWeight / sumTotalUnits;
             }
-            const finalAvgWeightStr = Math.round(finalAvgWeight).toLocaleString('pt-BR');
+            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
+            const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
             footerContainer.innerHTML = `
                 <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
@@ -760,8 +777,8 @@
                     </div>
 
                     <div class="text-center">
-                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Liq. Total (kg)</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr} kg</div>
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div> <!-- Removed 'kg' -->
                     </div>
 
                     <!-- Separador Horizontal -->
@@ -774,7 +791,8 @@
                     </div>
 
                     <div class="text-center">
-                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Peso Médio (g.unid)</div>
+                        <!-- AJUSTE: Adicionado ponto final em (G/UNID.) -->
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G/UNID.)</div>
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
                 </div>
@@ -833,7 +851,7 @@
                 const weight = parsePTBRNumber(item.harvestWeight); 
                 const boxes = parsePTBRNumber(item.boxes);
                 const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); 
-                const avgWeightG = parsePTBRNumber(item.averageWeight); 
+                const avgWeightValue = parsePTBRNumber(item.averageWeight); // Valor já é 0.234
                 const units = parsePTBRNumber(item.totalUnits);
 
                 totalKg += weight;
@@ -847,37 +865,31 @@
                     netKgPerBox = weight / boxes; 
                 }
                 
-                kgPerUnit = avgWeightG / 1000; 
+                kgPerUnit = avgWeightValue; 
 
-                const weightStr = Math.round(weight).toLocaleString('pt-BR'); // Fixed formatting here
+                const weightStr = Math.round(weight).toLocaleString('pt-BR'); 
                 const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
-                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); // Pode ser decimal agora
-                const kgPerUnitStr = kgPerUnit.toFixed(3).replace('.', ','); 
+                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+                const kgPerUnitStr = kgPerUnit.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); 
 
-                let unitLabel = "g";
-                let unitText = "(G)";
-                
-                if (kgPerUnit >= 1) {
-                    unitLabel = "kg";
-                    unitText = "(KG)";
-                }
-
+                // Montagem da linha (UNIDADES REMOVIDAS APÓS OS NÚMEROS)
                 text += `\`Bloco ${item.talhao}\`\n\n`;
-                text += `*Peso (kg):* ${weightStr} kg\n\n`;
-                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr} ${unitLabel}\n\n`; 
-                text += `*Kg por Caixa:* ${kgPerBoxStr} kg\n\n`;
-                text += `*Unidades por Caixa:* ${unitsPerBoxStr} un\n\n\n`;
+                text += `*Peso (kg):* ${weightStr}\n\n`; // Sem 'kg' no final
+                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr}\n\n`; // Sem 'g' ou 'kg' no final
+                text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`; // Sem 'kg' no final
+                text += `*Unidades por Caixa:* ${unitsPerBoxStr}\n\n\n`; // Sem 'un' no final
             });
 
             let globalAvgWeight = 0;
             if (totalUnits > 0) {
-                globalAvgWeight = (totalKg * 1000) / totalUnits;
+                globalAvgWeight = totalKg / totalUnits;
             }
-            const globalAvgStr = Math.round(globalAvgWeight).toLocaleString('pt-BR');
+            const globalAvgStr = globalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`; // Fixed formatting here
+            // TOTAIS (UNIDADES REMOVIDAS APÓS OS NÚMEROS)
+            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`;
             text += `\`Total Unidades: ${totalUnits.toLocaleString('pt-BR')}\`\n\n`;
-            text += `\`Peso Médio: ${globalAvgStr} g.unid\`\n\n`;
+            text += `\`Peso Médio: ${globalAvgStr}\`\n\n`; // Sem 'g.unid' no final
             text += `\`Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}\``;
 
             const textArea = document.createElement("textarea");
