@@ -125,8 +125,7 @@
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
-                                <!-- ALTERADO: formatDecimalInput para aceitar vírgula (18,3) -->
-                                <input type="text" id="grossWeight" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <input type="text" id="grossWeight" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
 
@@ -200,7 +199,8 @@
                     <!-- AJUSTE DE LOGO: ADICIONADO style para contraste de imagem -->
                     <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
-                        <h2 id="reportTitle" class="text-base font-bold leading-snug tracking-normal">
+                        <!-- AJUSTE: Reduzido de text-base para text-sm -->
+                        <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
                             <!-- Injetado via JS -->
                         </h2>
                         <div class="mt-3 pt-3 border-t border-white/20">
@@ -284,9 +284,11 @@
 
             // LOGICA NOVA: Nome do Parceiro Dinâmico
             const partnerInput = document.getElementById('partner');
+            // Se tiver valor no select, usa ele. Se não, usa "Pessoal"
             const partnerName = (partnerInput && partnerInput.value) ? partnerInput.value : 'Pessoal';
 
             const titleElement = document.getElementById('reportTitle');
+            // Título dinâmico com o nome do parceiro
             titleElement.innerHTML = `${greeting}, ${partnerName}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
 
             const dateElement = document.getElementById('headerDateTime');
@@ -760,7 +762,7 @@
                 // sumWeight is in kg. result is kg/unit (0.234)
                 finalAvgWeight = sumWeight / sumTotalUnits;
             }
-            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
+            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234) dividindo por 1000 para manter o padrão visual solicitado
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
             footerContainer.innerHTML = `
@@ -872,12 +874,19 @@
                 const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
                 const kgPerUnitStr = kgPerUnit.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); 
 
-                // Montagem da linha (UNIDADES REMOVIDAS APÓS OS NÚMEROS)
+                let unitLabel = "g";
+                let unitText = "(G)";
+                
+                if (kgPerUnit >= 1) {
+                    unitLabel = "kg";
+                    unitText = "(KG)";
+                }
+
                 text += `\`Bloco ${item.talhao}\`\n\n`;
-                text += `*Peso (kg):* ${weightStr}\n\n`; // Sem 'kg' no final
-                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr}\n\n`; // Sem 'g' ou 'kg' no final
-                text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`; // Sem 'kg' no final
-                text += `*Unidades por Caixa:* ${unitsPerBoxStr}\n\n\n`; // Sem 'un' no final
+                text += `*Peso (kg):* ${weightStr} kg\n\n`;
+                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr} ${unitLabel}\n\n`; 
+                text += `*Kg por Caixa:* ${kgPerBoxStr} kg\n\n`;
+                text += `*Unidades por Caixa:* ${unitsPerBoxStr} un\n\n\n`;
             });
 
             let globalAvgWeight = 0;
@@ -886,10 +895,9 @@
             }
             const globalAvgStr = globalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            // TOTAIS (UNIDADES REMOVIDAS APÓS OS NÚMEROS)
-            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`;
+            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`; // Fixed formatting here
             text += `\`Total Unidades: ${totalUnits.toLocaleString('pt-BR')}\`\n\n`;
-            text += `\`Peso Médio: ${globalAvgStr}\`\n\n`; // Sem 'g.unid' no final
+            text += `\`Peso Médio: ${globalAvgStr} g.unid\`\n\n`;
             text += `\`Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}\``;
 
             const textArea = document.createElement("textarea");
