@@ -116,7 +116,6 @@
                         </div>
                         <div id="commercialVarietyWrapper">
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                            <!-- ALTERADO: Input começa disabled (bloqueado) -->
                             <input type="text" id="commercialVariety" disabled placeholder="Selecione a cultura..." class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-sm cursor-not-allowed">
                         </div>
                     </div>
@@ -129,15 +128,15 @@
                         <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Caixas</label>
-                                <input type="text" id="boxes" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 50" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <input type="text" id="boxes" required oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 50" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
-                                <input type="text" id="grossWeight" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <input type="text" id="grossWeight" required oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
 
-                        <!-- Linha 2: Taras (ID adicionado: tareRow) -->
+                        <!-- Linha 2: Taras (ID: tareRow) -->
                         <div id="tareRow" class="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
@@ -149,28 +148,29 @@
                             </div>
                         </div>
 
-                        <!-- Linha 3: Peso Liq e Unidades (Condicional) -->
-                         <div class="grid grid-cols-2 gap-3 mb-3">
-                             <div>
-                                <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
-                                <input type="text" id="harvestWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
-                            </div>
+                        <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
+                         <div id="netWeightWrapper" class="mb-3">
+                            <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
+                            <input type="text" id="harvestWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
+                        </div>
+
+                        <!-- REORGANIZADO: Unidades (2 em cima) e Peso Médio (1 em baixo total) -->
+                        <!-- Linha Superior: Média e Total -->
+                        <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label id="labelUnitsPerBox" class="text-[10px] font-bold text-slate-500 mb-1 block">Média Unid. p/ Caixa</label>
                                 <input type="text" id="unitsPerBox" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 18" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
-                        </div>
-
-                        <!-- Linha 4: Total Unid e Média -->
-                        <div class="grid grid-cols-2 gap-3 mb-2">
                              <div>
                                 <label id="labelTotalUnits" class="text-[10px] font-bold text-emerald-600 mb-1 block">Total Unidades</label>
                                 <input type="text" id="totalUnits" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                             </div>
-                            <div>
-                               <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Médio (g)</label>
-                               <input type="text" id="averageWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
-                           </div>
+                        </div>
+
+                        <!-- Linha Inferior: Peso Médio (Full Width) -->
+                        <div class="mb-2">
+                           <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Médio (g)</label>
+                           <input type="text" id="averageWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                        </div>
 
                         <!-- CAMPOS EXTRAS SPG OÁSIS (Inicialmente Ocultos) -->
@@ -196,10 +196,6 @@
                             </div>
                         </div>
 
-                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
-                            <span>* Liq = Bruto - (Caixas x Tara Cx) - Tara Pallet</span>
-                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
-                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -268,11 +264,48 @@
 
         let harvestData = [];
         let editingIndex = -1;
+        const STORAGE_KEY = 'spg_sede_data'; // Chave para o localStorage
 
+        // INICIALIZAÇÃO
         lucide.createIcons();
         updateDynamicTitle();
-        renderList(); 
-        renderReport(); 
+        loadFromStorage(); // Carrega dados salvos ao iniciar
+
+        // --- FUNÇÕES DE PERSISTÊNCIA (LOCALSTORAGE) ---
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(harvestData));
+            } catch (e) {
+                console.error("Erro ao salvar no localStorage", e);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    harvestData = JSON.parse(storedData);
+                    renderList();
+                    renderReport();
+                    
+                    // Se houver dados, tenta recuperar o parceiro do último item para configurar o formulário
+                    if (harvestData.length > 0) {
+                        const lastItem = harvestData[harvestData.length - 1];
+                        if(lastItem.partner) {
+                             const partnerSelect = document.getElementById('partner');
+                             if(partnerSelect) {
+                                 partnerSelect.value = lastItem.partner;
+                                 toggleInputMode(); // Ajusta os campos com base no parceiro carregado
+                                 updateDynamicTitle();
+                             }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao carregar do localStorage", e);
+            }
+        }
+
 
         // --- FUNÇÕES DE DATA E HORA ---
 
@@ -339,7 +372,15 @@
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
-            const tareRow = document.getElementById('tareRow'); // Seleciona a linha das Taras
+            const tareRow = document.getElementById('tareRow'); 
+            const netWeightWrapper = document.getElementById('netWeightWrapper'); 
+            
+            // Inputs específicos para validação
+            const tareInput = document.getElementById('tare');
+            const palletTareInput = document.getElementById('palletTare');
+            const prodDaysInput = document.getElementById('productionDays');
+            const plantedInput = document.getElementById('plantedUnits');
+            const accumInput = document.getElementById('accumulatedUnits');
             
             const labelTotalUnits = document.getElementById('labelTotalUnits');
             const labelUnitsPerBox = document.getElementById('labelUnitsPerBox');
@@ -350,9 +391,11 @@
 
                 // OCULTAR CAMPOS DE TARA
                 tareRow.classList.add('hidden');
-                // Limpa os valores para não afetar o cálculo
                 document.getElementById('tare').value = '';
                 document.getElementById('palletTare').value = '';
+                
+                // OCULTAR PESO LÍQUIDO
+                netWeightWrapper.classList.add('hidden');
 
                 // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
                 totalUnitsInput.removeAttribute('readonly');
@@ -371,17 +414,27 @@
                 unitsPerBoxInput.removeAttribute('oninput');
                 unitsPerBoxInput.placeholder = "Calc. Auto";
 
-                // Label Média
+                // Label Média (ALTERADO: Removido "(Auto)" para alinhar)
                 labelUnitsPerBox.classList.add('text-emerald-600');
                 labelUnitsPerBox.classList.remove('text-slate-500');
-                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa (Auto)";
+                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
+                
+                // Configurar REQUIRED (Validação Nativa)
+                totalUnitsInput.required = true;
+                unitsPerBoxInput.required = false;
+                tareInput.required = false;
+                palletTareInput.required = false;
+                prodDaysInput.required = true;
+                plantedInput.required = true;
+                accumInput.required = true;
 
             } else {
                 // OCULTAR CAMPOS EXTRAS
                 spgFields.classList.add('hidden');
 
-                // EXIBIR CAMPOS DE TARA
+                // EXIBIR CAMPOS DE TARA E PESO LIQUIDO
                 tareRow.classList.remove('hidden');
+                netWeightWrapper.classList.remove('hidden');
 
                 // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
                 totalUnitsInput.setAttribute('readonly', true);
@@ -403,6 +456,15 @@
                 labelUnitsPerBox.classList.remove('text-emerald-600');
                 labelUnitsPerBox.classList.add('text-slate-500');
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
+                
+                // Configurar REQUIRED (Validação Nativa)
+                totalUnitsInput.required = false;
+                unitsPerBoxInput.required = true;
+                tareInput.required = true;
+                palletTareInput.required = true;
+                prodDaysInput.required = false;
+                plantedInput.required = false;
+                accumInput.required = false;
             }
             
             // Recalcula para garantir consistência
@@ -503,14 +565,7 @@
             const variety = document.getElementById('variety').value;
             const wrapper = document.getElementById('commercialVarietyWrapper');
             
-            // LÓGICA ATUALIZADA: Bloqueia se vazio, libera se selecionado
-            // ADICIONADO 'required' aos campos ativos para exibir o aviso nativo do navegador
-            if (variety === "") {
-                wrapper.innerHTML = `
-                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                    <input type="text" id="commercialVariety" disabled placeholder="Selecione a cultura..." class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-sm cursor-not-allowed">
-                `;
-            } else if (variety === 'Brócolis') {
+            if (variety === 'Brócolis') {
                 wrapper.innerHTML = `
                     <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
                     <select id="commercialVariety" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
@@ -623,10 +678,6 @@
         function addItem(e) {
             e.preventDefault();
 
-            // REMOVIDO: O alert manual foi removido. 
-            // Como adicionamos 'required' no HTML via updateCommercialInput, 
-            // o navegador vai impedir o submit e mostrar o balãozinho nativo automaticamente.
-
             // Valores Calculados ou Diretos
             const netWeightRaw = document.getElementById('harvestWeight').value; 
             const totalUnitsRaw = document.getElementById('totalUnits').value;
@@ -659,11 +710,12 @@
 
             if (editingIndex >= 0) {
                 harvestData[editingIndex] = newItem;
-                clearBlockForm(); 
             } else {
                 harvestData.push(newItem);
-                clearBlockForm(); 
             }
+            
+            saveToStorage(); // SALVAR APÓS ADICIONAR/EDITAR
+            clearBlockForm();
 
             renderReport();
             renderList();
@@ -674,6 +726,7 @@
             else if (editingIndex > index) editingIndex--;
 
             harvestData.splice(index, 1);
+            saveToStorage(); // SALVAR APÓS REMOVER
             renderReport();
             renderList();
         }
@@ -681,6 +734,7 @@
         function clearAll() {
             if(confirm('Tem certeza?')) {
                 harvestData = [];
+                saveToStorage(); // SALVAR APÓS LIMPAR TUDO
                 clearBlockForm(); 
                 renderReport();
                 renderList();
