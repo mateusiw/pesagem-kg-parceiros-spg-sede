@@ -85,7 +85,8 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parceiro</label>
-                            <select id="partner" required onchange="updateDynamicTitle(); toggleInputMode()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                            <!-- ADICIONADO: renderList() e renderReport() no onchange para filtrar -->
+                            <select id="partner" required onchange="updateDynamicTitle(); toggleInputMode(); renderList(); renderReport();" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                                 <option value="">Selecione...</option>
                                 <option value="SPG Oásis">SPG Oásis</option>
                                 <option value="Sítio Leitão">Sítio Leitão</option>
@@ -285,8 +286,6 @@
                 const storedData = localStorage.getItem(STORAGE_KEY);
                 if (storedData) {
                     harvestData = JSON.parse(storedData);
-                    renderList();
-                    renderReport();
                     
                     // Se houver dados, tenta recuperar o parceiro do último item para configurar o formulário
                     if (harvestData.length > 0) {
@@ -300,10 +299,27 @@
                              }
                         }
                     }
+                    
+                    // Renderiza lista e relatório COM FILTRO inicial
+                    renderList();
+                    renderReport();
                 }
             } catch (e) {
                 console.error("Erro ao carregar do localStorage", e);
             }
+        }
+        
+        // --- FUNÇÃO DE FILTRAGEM ---
+        function getFilteredData() {
+            const partnerSelect = document.getElementById('partner');
+            const selectedPartner = partnerSelect ? partnerSelect.value : '';
+            
+            // Se nenhum parceiro selecionado (ou "Selecione..."), mostra tudo?
+            // Melhor: Se vazio, não mostra nada ou mostra tudo.
+            // Para segurança e clareza, vamos mostrar tudo se vazio, mas se tiver selecionado, filtra.
+            if (!selectedPartner) return harvestData;
+            
+            return harvestData.filter(item => item.partner === selectedPartner);
         }
 
 
@@ -599,14 +615,13 @@
         }
 
         function clearBlockForm() {
+            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
             document.getElementById('tare').value = ''; 
             document.getElementById('palletTare').value = ''; 
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
-            document.getElementById('productionDays').value = ''; 
-            document.getElementById('accumulatedUnits').value = ''; 
             
             document.getElementById('totalUnits').value = '';
             document.getElementById('averageWeight').value = ''; 
@@ -616,7 +631,7 @@
             varietySelect.selectedIndex = 0;
             updateCommercialInput(); 
             updateDynamicTitle(); 
-            toggleInputMode(); 
+            toggleInputMode(); // Reset to current partner mode
 
             editingIndex = -1;
             const submitBtn = document.getElementById('submitBtn');
@@ -634,6 +649,10 @@
         }
 
         function editItem(index) {
+            const allItems = harvestData; // Original Data
+            // We need to find the correct item based on the filtered view if we are clicking from a filtered list.
+            // But here, we pass the REAL index from renderList.
+            
             const item = harvestData[index];
             editingIndex = index; 
 
@@ -710,6 +729,7 @@
 
             if (editingIndex >= 0) {
                 harvestData[editingIndex] = newItem;
+                editingIndex = -1; // Reset editing index
             } else {
                 harvestData.push(newItem);
             }
@@ -722,8 +742,11 @@
         }
 
         function removeItem(index) {
-            if (editingIndex === index) clearBlockForm();
-            else if (editingIndex > index) editingIndex--;
+            if (editingIndex === index) {
+                clearBlockForm();
+                editingIndex = -1;
+            }
+            // else if (editingIndex > index) editingIndex--; // Not strictly needed if we reset editingIndex on clear
 
             harvestData.splice(index, 1);
             saveToStorage(); // SALVAR APÓS REMOVER
@@ -732,7 +755,7 @@
         }
 
         function clearAll() {
-            if(confirm('Tem certeza?')) {
+            if(confirm('Tem certeza? Isso apagará todos os dados.')) {
                 harvestData = [];
                 saveToStorage(); // SALVAR APÓS LIMPAR TUDO
                 clearBlockForm(); 
@@ -741,34 +764,40 @@
             }
         }
 
+        // --- FUNÇÃO DE RENDERIZAÇÃO DA LISTA (COM FILTRO) ---
         function renderList() {
             const list = document.getElementById('itemsList');
             list.innerHTML = '';
+            
+            const displayData = getFilteredData();
 
-            if (harvestData.length === 0) {
+            if (displayData.length === 0) {
                 const emptyLi = document.createElement('li');
                 emptyLi.className = "text-center text-slate-400 italic py-2";
-                emptyLi.innerText = "Nenhum bloco adicionado.";
+                emptyLi.innerText = "Nenhum bloco para este parceiro.";
                 list.appendChild(emptyLi);
                 return;
             }
 
-            harvestData.forEach((item, index) => {
+            displayData.forEach((item) => {
+                // PRECISAMOS DO INDEX ORIGINAL PARA EDITAR/REMOVER CORRETAMENTE
+                const originalIndex = harvestData.indexOf(item);
+
                 const li = document.createElement('li');
-                const activeClass = (index === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
 
                 li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
                 li.innerHTML = `
                     <span>
                         <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
                         <b>#${item.talhao}</b> - ${item.variety} 
-                        ${index === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                        ${originalIndex === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
                     </span>
                     <div class="flex items-center">
-                        <button onclick="editItem(${index})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
                             <i data-lucide="pencil" width="14"></i>
                         </button>
-                        <button onclick="removeItem(${index})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
                             <i data-lucide="trash-2" width="14"></i>
                         </button>
                     </div>
@@ -778,6 +807,7 @@
             lucide.createIcons();
         }
 
+        // --- FUNÇÃO DE RENDERIZAÇÃO DO RELATÓRIO (COM FILTRO) ---
         function renderReport() {
             const container = document.getElementById('reportContent');
             const footerContainer = document.getElementById('operationalFooter');
@@ -786,14 +816,16 @@
             let sumBoxes = 0;
             let sumWeight = 0;
             let sumTotalUnits = 0;
+            
+            const displayData = getFilteredData();
 
-            if (harvestData.length === 0) {
+            if (displayData.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full min-h-[300px] flex flex-col items-center justify-center">
                     <i data-lucide="clipboard-list" class="mb-2 w-8 h-8 opacity-20"></i>
-                    <span>Adicione dados no formulário ao lado para visualizar.</span>
+                    <span>Adicione dados para visualizar o relatório.</span>
                 </div>`;
             } else {
-                harvestData.forEach((item, index) => { 
+                displayData.forEach((item, index) => { 
                     const displayVariety = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
                     
                     const boxesVal = parsePTBRNumber(item.boxes);
@@ -984,7 +1016,8 @@
 
         // --- FUNÇÃO PARA GERAR TEXTO WHATSAPP ---
         function copyToWhatsApp() {
-            if (harvestData.length === 0) {
+            const displayData = getFilteredData();
+            if (displayData.length === 0) {
                 alert("Adicione blocos primeiro para gerar o texto.");
                 return;
             }
@@ -1001,9 +1034,8 @@
             
             if (partnerInput && partnerInput.value) {
                 headerName = partnerInput.value;
-            } else if (harvestData.length > 0 && harvestData[0].partner) {
-                headerName = harvestData[0].partner;
             }
+            // Fallback se não selecionado, mas temos dados (usado na lógica antiga, mas com filtro, partnerInput.value deve existir se displayData > 0 e a gente forçou select)
             
             let text = `${greeting}, ${headerName}!\n\n`;
             text += `Pesagem de ${weekday} ${refDate} - Semana ${weekNumber}\n\n`;
@@ -1012,7 +1044,7 @@
             let totalBoxes = 0;
             let totalUnits = 0;
 
-            harvestData.forEach(item => {
+            displayData.forEach(item => {
                 const weight = parsePTBRNumber(item.harvestWeight); 
                 const boxes = parsePTBRNumber(item.boxes);
                 const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); 
