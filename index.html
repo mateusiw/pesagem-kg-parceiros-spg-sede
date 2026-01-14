@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resumo Colheita Parceiros SPG SEDE</title>
     
-    <!-- Configurações PWA com Ícone Personalizado -->
-    <link rel="icon" type="image/png" href="https://i.imgur.com/wEozr34.png">
-    <link rel="apple-touch-icon" href="https://i.imgur.com/wEozr34.png">
-    <link rel="manifest" href='data:application/manifest+json,{"name":"SPG SEDE 2026","short_name":"SPG SEDE","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"https://i.imgur.com/wEozr34.png","sizes":"192x192","type":"image/png"},{"src":"https://i.imgur.com/wEozr34.png","sizes":"512x512","type":"image/png"}]}'>
+    <!-- Configurações PWA com Ícone Personalizado (LOGO NOVO TRANSPARENTE) -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/f7UnnL0.png">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/f7UnnL0.png">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"SPG SEDE 2026","short_name":"SPG SEDE","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"https://i.imgur.com/f7UnnL0.png","sizes":"192x192","type":"image/png"},{"src":"https://i.imgur.com/f7UnnL0.png","sizes":"512x512","type":"image/png"}]}'>
     
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,21 +35,28 @@
     <!-- Navbar -->
     <div class="bg-white border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-center shadow-sm sticky top-0 z-40 gap-3">
         <div class="flex items-center gap-3 w-full md:w-auto">
-            <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
+            <!-- LOGO NOVO NA NAVBAR -->
+            <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
             <div>
                 <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG SEDE</h1>
                 <p class="text-[10px] text-slate-500 font-medium">Resumo da Pesagem (kg) Parceiros SPG SEDE</p>
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp (NOVO) -->
-            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+            <!-- Botão WhatsApp -->
+            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
-                <span>Copiar Texto WhatsApp</span>
+                <span>Texto Zap</span>
             </button>
             
+            <!-- Botão Imagem (NOVO) -->
+            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
+                <i data-lucide="image" class="w-4 h-4"></i>
+                <span>Baixar Imagem</span>
+            </button>
+
             <!-- Botão PDF -->
-            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
+            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
                 <i data-lucide="file-down" class="w-4 h-4"></i>
                 <span>Baixar PDF</span>
             </button>
@@ -109,7 +116,8 @@
                         </div>
                         <div id="commercialVarietyWrapper">
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                            <input type="text" id="commercialVariety" placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                            <!-- ALTERADO: Input começa disabled (bloqueado) -->
+                            <input type="text" id="commercialVariety" disabled placeholder="Selecione a cultura..." class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-sm cursor-not-allowed">
                         </div>
                     </div>
 
@@ -129,8 +137,8 @@
                             </div>
                         </div>
 
-                        <!-- Linha 2: Taras -->
-                        <div class="grid grid-cols-2 gap-3 mb-3">
+                        <!-- Linha 2: Taras (ID adicionado: tareRow) -->
+                        <div id="tareRow" class="grid grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
                                 <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -165,6 +173,29 @@
                            </div>
                        </div>
 
+                        <!-- CAMPOS EXTRAS SPG OÁSIS (Inicialmente Ocultos) -->
+                        <div id="spgOasisFields" class="hidden border-t border-slate-100 pt-2 mt-2">
+                            <label class="text-[10px] font-bold text-emerald-600 block mb-2 uppercase tracking-wide">Dados Exclusivos SPG</label>
+                            
+                            <!-- LINHA 1 EXTRA: Dias e Qtd Plantada -->
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Dias de Produção</label>
+                                    <input type="number" id="productionDays" placeholder="Ex: 45" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Qtd. Plantada</label>
+                                    <input type="text" id="plantedUnits" oninput="formatNumberInput(this)" placeholder="Ex: 20.000" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                            </div>
+                            
+                            <!-- LINHA 2 EXTRA: Acumulado -->
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Total Unid. Acumulado</label>
+                                <input type="text" id="accumulatedUnits" oninput="formatNumberInput(this)" placeholder="Ex: 15.000" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
                         <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
                             <span>* Liq = Bruto - (Caixas x Tara Cx) - Tara Pallet</span>
                             <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
@@ -196,10 +227,9 @@
                 
                 <!-- Cabeçalho - ADICIONADO antialiased para nitidez -->
                 <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
-                    <!-- AJUSTE DE LOGO: ADICIONADO style para contraste de imagem -->
-                    <img src="https://i.imgur.com/wEozr34.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0" style="image-rendering: -webkit-optimize-contrast;">
+                    <!-- LOGO NOVO SEM mix-blend-multiply (já é transparente) -->
+                    <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
-                        <!-- AJUSTE: Reduzido de text-base para text-sm -->
                         <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
                             <!-- Injetado via JS -->
                         </h2>
@@ -284,12 +314,19 @@
 
             // LOGICA NOVA: Nome do Parceiro Dinâmico
             const partnerInput = document.getElementById('partner');
-            // Se tiver valor no select, usa ele. Se não, usa "Pessoal"
-            const partnerName = (partnerInput && partnerInput.value) ? partnerInput.value : 'Pessoal';
+            const currentPartner = (partnerInput && partnerInput.value) ? partnerInput.value : '';
 
             const titleElement = document.getElementById('reportTitle');
-            // Título dinâmico com o nome do parceiro
-            titleElement.innerHTML = `${greeting}, ${partnerName}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
+            
+            // CONDICIONAL ESPECÍFICA PARA SPG OÁSIS
+            if (currentPartner === 'SPG Oásis') {
+                // Se for SPG Oásis: "Pessoal" + "Resumo da Produção"
+                titleElement.innerHTML = `${greeting}, Pessoal!<br>Resumo da Produção de ${weekDay}`;
+            } else {
+                // Se for outro parceiro (ou vazio): "[Nome]" + "Resumo da Pesagem (kg)"
+                const displayPartner = currentPartner || 'Pessoal';
+                titleElement.innerHTML = `${greeting}, ${displayPartner}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
+            }
 
             const dateElement = document.getElementById('headerDateTime');
             dateElement.innerText = `Data: ${day}/${month}/${year} - ${timeString} - Semana ${weekNumber}`;
@@ -301,26 +338,33 @@
             
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
+            const spgFields = document.getElementById('spgOasisFields');
+            const tareRow = document.getElementById('tareRow'); // Seleciona a linha das Taras
             
             const labelTotalUnits = document.getElementById('labelTotalUnits');
             const labelUnitsPerBox = document.getElementById('labelUnitsPerBox');
 
             if (partner === 'SPG Oásis') {
+                // EXIBIR CAMPOS EXTRAS
+                spgFields.classList.remove('hidden');
+
+                // OCULTAR CAMPOS DE TARA
+                tareRow.classList.add('hidden');
+                // Limpa os valores para não afetar o cálculo
+                document.getElementById('tare').value = '';
+                document.getElementById('palletTare').value = '';
+
                 // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
-                
-                // Habilitar Total Unidades
                 totalUnitsInput.removeAttribute('readonly');
                 totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800'); 
                 totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800'); 
                 totalUnitsInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
                 totalUnitsInput.placeholder = "Ex: 5000";
                 
-                // Label Total
                 labelTotalUnits.classList.remove('text-emerald-600');
                 labelTotalUnits.classList.add('text-slate-500');
                 labelTotalUnits.innerText = "Total Unidades (Manual)";
 
-                // Bloquear Média Unidades
                 unitsPerBoxInput.setAttribute('readonly', true);
                 unitsPerBoxInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
                 unitsPerBoxInput.classList.remove('bg-white', 'border-slate-300');
@@ -333,28 +377,29 @@
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa (Auto)";
 
             } else {
-                // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
+                // OCULTAR CAMPOS EXTRAS
+                spgFields.classList.add('hidden');
 
-                // Bloquear Total Unidades
+                // EXIBIR CAMPOS DE TARA
+                tareRow.classList.remove('hidden');
+
+                // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
                 totalUnitsInput.setAttribute('readonly', true);
                 totalUnitsInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
                 totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
                 totalUnitsInput.removeAttribute('oninput');
                 totalUnitsInput.placeholder = "Calc. Auto";
 
-                // Label Total
                 labelTotalUnits.classList.add('text-emerald-600');
                 labelTotalUnits.classList.remove('text-slate-500');
                 labelTotalUnits.innerText = "Total Unidades - Auto";
 
-                // Habilitar Média Unidades
                 unitsPerBoxInput.removeAttribute('readonly');
                 unitsPerBoxInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
                 unitsPerBoxInput.classList.add('bg-white', 'border-slate-300');
                 unitsPerBoxInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
                 unitsPerBoxInput.placeholder = "Ex: 18";
 
-                // Label Média
                 labelUnitsPerBox.classList.remove('text-emerald-600');
                 labelUnitsPerBox.classList.add('text-slate-500');
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
@@ -367,7 +412,7 @@
         // --- FUNÇÕES DE CÁLCULO ---
 
         function calculateValues() {
-            const partner = document.getElementById('partner').value; // Verifica parceiro para saber o modo de cálculo
+            const partner = document.getElementById('partner').value; 
             
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
             const tare = parsePTBRNumber(document.getElementById('tare').value);
@@ -387,9 +432,7 @@
                 netWeight = Math.max(0, grossWeight - totalTare);
                 
                 // ALTERAÇÃO: Exibir com decimais se houver (não usar Math.round)
-                // Se for inteiro (ex: 18.0), mostra sem vírgula. Se for decimal (18.3), mostra com vírgula.
                 netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
-                // formatNumberInput(netWeightInput); // REMOVIDO pois remove a vírgula
             } else {
                 netWeightInput.value = "";
             }
@@ -400,18 +443,17 @@
 
             if (partner === 'SPG Oásis') {
                 // MODO: Total Manual -> Calcula Média
-                totalUnits = parsePTBRNumber(totalUnitsInput.value); // Pega do input manual
+                totalUnits = parsePTBRNumber(totalUnitsInput.value); 
                 
                 if (boxes > 0 && totalUnits > 0) {
                     unitsPerBox = totalUnits / boxes;
-                    // Mostra com 1 casa decimal
                     unitsPerBoxInput.value = unitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
                 } else {
                     unitsPerBoxInput.value = "";
                 }
             } else {
                 // MODO PADRÃO: Média Manual -> Calcula Total
-                unitsPerBox = parsePTBRNumber(unitsPerBoxInput.value); // Pega do input manual
+                unitsPerBox = parsePTBRNumber(unitsPerBoxInput.value); 
                 
                 if (boxes > 0 && unitsPerBox > 0) {
                     totalUnits = boxes * unitsPerBox;
@@ -424,9 +466,7 @@
 
             // 3. Calcular Peso Médio Unitário (Visual: 0,xxx)
             if (totalUnits > 0 && netWeight > 0) {
-                // Cálculo direto em KG (ex: 41 / 175 = 0.23428)
                 const avgKg = netWeight / totalUnits;
-                // Formata para 3 casas (0,234)
                 avgInput.value = avgKg.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             } else {
                 avgInput.value = "";
@@ -463,10 +503,17 @@
             const variety = document.getElementById('variety').value;
             const wrapper = document.getElementById('commercialVarietyWrapper');
             
-            if (variety === 'Brócolis') {
+            // LÓGICA ATUALIZADA: Bloqueia se vazio, libera se selecionado
+            // ADICIONADO 'required' aos campos ativos para exibir o aviso nativo do navegador
+            if (variety === "") {
                 wrapper.innerHTML = `
                     <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                    <select id="commercialVariety" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                    <input type="text" id="commercialVariety" disabled placeholder="Selecione a cultura..." class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-400 rounded-lg text-sm cursor-not-allowed">
+                `;
+            } else if (variety === 'Brócolis') {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <select id="commercialVariety" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                         <option value="">Selecione...</option>
                         <option value="BRO 68 Syngenta">BRO 68 Syngenta</option>
                         <option value="Master TSV">Master TSV</option>
@@ -477,7 +524,7 @@
             } else if (variety === 'Couve-Flor') {
                 wrapper.innerHTML = `
                     <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                    <select id="commercialVariety" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                    <select id="commercialVariety" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                         <option value="">Selecione...</option>
                         <option value="Vereda">Vereda</option>
                         <option value="Copacabana">Copacabana</option>
@@ -491,19 +538,20 @@
             } else {
                 wrapper.innerHTML = `
                     <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                    <input type="text" id="commercialVariety" placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                    <input type="text" id="commercialVariety" required placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
                 `;
             }
         }
 
         function clearBlockForm() {
-            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
             document.getElementById('tare').value = ''; 
             document.getElementById('palletTare').value = ''; 
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
+            document.getElementById('productionDays').value = ''; 
+            document.getElementById('accumulatedUnits').value = ''; 
             
             document.getElementById('totalUnits').value = '';
             document.getElementById('averageWeight').value = ''; 
@@ -513,7 +561,7 @@
             varietySelect.selectedIndex = 0;
             updateCommercialInput(); 
             updateDynamicTitle(); 
-            toggleInputMode(); // Reset to current partner mode
+            toggleInputMode(); 
 
             editingIndex = -1;
             const submitBtn = document.getElementById('submitBtn');
@@ -535,7 +583,7 @@
             editingIndex = index; 
 
             document.getElementById('partner').value = item.partner;
-            toggleInputMode(); // Configure inputs based on loaded partner
+            toggleInputMode(); 
 
             document.getElementById('talhao').value = item.talhao;
             document.getElementById('variety').value = item.variety;
@@ -547,9 +595,13 @@
             document.getElementById('palletTare').value = item.palletTare || ''; 
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
-            document.getElementById('totalUnits').value = item.totalUnits || ''; // Explicitly set totalUnits as it might be an input now
+            document.getElementById('totalUnits').value = item.totalUnits || ''; 
             
-            calculateValues(); // Recalculate to ensure UI consistency
+            document.getElementById('productionDays').value = item.productionDays || '';
+            document.getElementById('plantedUnits').value = item.plantedUnits || '';
+            document.getElementById('accumulatedUnits').value = item.accumulatedUnits || '';
+            
+            calculateValues(); 
             updateDynamicTitle(); 
             
             const submitBtn = document.getElementById('submitBtn');
@@ -571,6 +623,10 @@
         function addItem(e) {
             e.preventDefault();
 
+            // REMOVIDO: O alert manual foi removido. 
+            // Como adicionamos 'required' no HTML via updateCommercialInput, 
+            // o navegador vai impedir o submit e mostrar o balãozinho nativo automaticamente.
+
             // Valores Calculados ou Diretos
             const netWeightRaw = document.getElementById('harvestWeight').value; 
             const totalUnitsRaw = document.getElementById('totalUnits').value;
@@ -591,9 +647,14 @@
                 grossWeight: grossWeightRaw,
                 unitsPerBox: unitsPerBoxRaw,
                 
-                harvestWeight: netWeightRaw, // Salva o Peso Líquido como oficial
-                totalUnits: totalUnitsRaw,   // Salva o Total Unidades oficial
-                averageWeight: document.getElementById('averageWeight').value
+                harvestWeight: netWeightRaw, 
+                totalUnits: totalUnitsRaw,   
+                averageWeight: document.getElementById('averageWeight').value,
+
+                // Novos Campos SPG
+                productionDays: document.getElementById('productionDays').value,
+                plantedUnits: document.getElementById('plantedUnits').value,
+                accumulatedUnits: document.getElementById('accumulatedUnits').value
             };
 
             if (editingIndex >= 0) {
@@ -678,7 +739,7 @@
                     <span>Adicione dados no formulário ao lado para visualizar.</span>
                 </div>`;
             } else {
-                harvestData.forEach((item, index) => { // Added index parameter
+                harvestData.forEach((item, index) => { 
                     const displayVariety = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
                     
                     const boxesVal = parsePTBRNumber(item.boxes);
@@ -690,57 +751,107 @@
                     sumWeight += weightVal;
                     sumTotalUnits += totalUnitsVal;
 
-                    // --- CÁLCULO DA MÉDIA KG POR CAIXA PARA O CARD ---
                     let avgKgBoxStr = "-";
                     if (boxesVal > 0) {
                         const avgKgBox = weightVal / boxesVal;
                         avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
                     }
 
-                    // --- FORMATAÇÃO DO PESO MÉDIO (0,XXX g) ---
                     let avgWeightFormatted = "-";
                     if (avgValG > 0) {
-                        // Value is already 0.234 (kg fraction), format to string
                         avgWeightFormatted = avgValG.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
                     }
 
-                    // LÓGICA DE EXIBIÇÃO DA TAG DO PARCEIRO
-                    const showPartnerTag = (item.partner !== 'SPG Oásis') || (index === 0);
+                    const showPartnerTag = (item.partner !== 'SPG Oásis') ; // CHANGED LOGIC: Never show tag for SPG Oásis
 
-                    // DEFINIÇÃO DO CONTEÚDO DO GRID (Agora padrão completo para todos)
+                    // --- INÍCIO: BLOCO DE DESTAQUE PARA SPG OÁSIS ---
+                    let spgHighlightBlock = '';
+                    if (item.partner === 'SPG Oásis') {
+                        const days = item.productionDays || '-';
+                        const accum = item.accumulatedUnits || '0';
+                        const planted = item.plantedUnits || '0';
+                        
+                        // Cálculo da Porcentagem
+                        let percentage = 0;
+                        const accumVal = parsePTBRNumber(accum);
+                        const plantedVal = parsePTBRNumber(planted);
+                        if (plantedVal > 0) {
+                            percentage = Math.round((accumVal / plantedVal) * 100);
+                        }
+                        const remaining = Math.max(0, 100 - percentage);
+
+                        // Cores da Barra
+                        let progressColor = 'bg-yellow-500';
+                        let textColor = 'text-slate-600';
+                        if (percentage >= 90) { progressColor = 'bg-emerald-500'; textColor = 'text-emerald-600'; }
+                        else if (percentage >= 70) { progressColor = 'bg-blue-500'; }
+
+                        // Layout inspirado na referência visual com Barra de Progresso
+                        spgHighlightBlock = `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
+                             <div class="flex justify-between items-end mb-1">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">COLHIDO</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-medium text-slate-500">
+                                        Total Acumulado: <span class="font-bold text-slate-700">${accum} un.</span>
+                                    </span>
+                                    <span class="text-slate-300 text-xs">|</span>
+                                    <span class="text-xs font-bold text-slate-400">
+                                        Falta: <span class="text-red-400">${remaining}%</span>
+                                    </span>
+                                </div>
+                            </div>
+                             
+                            <!-- Barra de Progresso -->
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full ${progressColor}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="text-xs font-extrabold ${textColor}">${percentage}%</span>
+                            </div>
+
+                             <!-- Divisor sutil -->
+                             <div class="h-px bg-slate-200 my-2"></div>
+
+                             <div class="text-[11px] font-bold text-blue-600 flex items-center gap-1">
+                                 <!-- Icone removido -->
+                                Dias de Produção: ${days} dias
+                            </div>
+                        </div>`;
+                    }
+                    // --- FIM: BLOCO DE DESTAQUE ---
+
                     const statsContent = `
                         <div class="grid grid-cols-3 gap-2"> 
-                            <!-- Linha 1: Dados da Embalagem -->
                             ${createStatItem('box', item.boxes, 'Caixas')}
-                            <!-- AJUSTE: Removidas as siglas + ' kg' e + ' un' -->
                             ${createStatItem('package-check', avgKgBoxStr, 'MÉDIA KG POR CAIXA')}
                             ${createStatItem('layers', item.unitsPerBox, 'MÉDIA UNIDADES POR CAIXA')}
 
-                            <!-- Linha 2: Totais Finais -->
-                            <!-- AJUSTE: Removida a sigla + ' kg' -->
                             ${createStatItem('weight', item.harvestWeight, 'PESO (KG)', true)}
                             ${createStatItem('hash', item.totalUnits, 'Unidades')}
-                            <!-- AJUSTE: Removida a sigla + ' g' -->
                             ${createStatItem('scale', avgWeightFormatted, 'PESO MÉDIO (G/UNID.)')}
                         </div>
                     `;
 
-                    // AJUSTE: LAYOUT COM NOVAS MÉDIAS
                     const html = `
                     <div class="p-5 hover:bg-slate-50 transition-colors group">
                         
-                        <!-- 1. TOPO: PARCEIRO, TÍTULO + TAG -->
                         <div class="flex flex-col mb-3">
                             ${showPartnerTag ? `<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>` : ''}
-                            <div class="flex items-center justify-between">
+                            <!-- AJUSTE: Título com Tag limpa (sem fundo cinza) para melhor nitidez -->
+                            <div class="flex items-center justify-between items-center">
                                 <span class="text-base font-bold text-slate-800 leading-normal">
                                     Bloco ${item.talhao}
                                 </span>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-[10px] font-bold text-slate-600 uppercase leading-normal tracking-wide">${displayVariety}</span>
-                                </div>
+                                <!-- Tag limpa: removido bg-slate-100 e border -->
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide text-right">
+                                    ${displayVariety}
+                                </span>
                             </div>
                         </div>
+
+                        <!-- Inserção do Bloco de Destaque SPG Oásis (se existir) -->
+                        ${spgHighlightBlock}
 
                         <!-- Grid de Estatísticas -->
                         ${statsContent}
@@ -750,19 +861,18 @@
                     container.innerHTML += html;
                 });
             }
+            // Re-render icons for new content
+            lucide.createIcons();
 
             // RODAPÉ OPERACIONAL (SEM BORDAS)
             const sumBoxesStr = sumBoxes.toLocaleString('pt-BR');
             const sumWeightStr = sumWeight.toLocaleString('pt-BR');
             const sumTotalUnitsStr = sumTotalUnits.toLocaleString('pt-BR');
             
-            // CORREÇÃO: Cálculo da média ponderada real (Peso Total / Total Unidades)
             let finalAvgWeight = 0;
             if (sumTotalUnits > 0) {
-                // sumWeight is in kg. result is kg/unit (0.234)
                 finalAvgWeight = sumWeight / sumTotalUnits;
             }
-            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234) dividindo por 1000 para manter o padrão visual solicitado
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
             footerContainer.innerHTML = `
@@ -780,7 +890,7 @@
 
                     <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div> <!-- Removed 'kg' -->
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div>
                     </div>
 
                     <!-- Separador Horizontal -->
@@ -793,13 +903,12 @@
                     </div>
 
                     <div class="text-center">
-                        <!-- AJUSTE: Adicionado ponto final em (G/UNID.) -->
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G/UNID.)</div>
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
                 </div>
             `;
-
+            // Call createIcons again just in case
             lucide.createIcons();
         }
 
@@ -853,7 +962,7 @@
                 const weight = parsePTBRNumber(item.harvestWeight); 
                 const boxes = parsePTBRNumber(item.boxes);
                 const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); 
-                const avgWeightValue = parsePTBRNumber(item.averageWeight); // Valor já é 0.234
+                const avgWeightG = parsePTBRNumber(item.averageWeight); 
                 const units = parsePTBRNumber(item.totalUnits);
 
                 totalKg += weight;
@@ -867,11 +976,11 @@
                     netKgPerBox = weight / boxes; 
                 }
                 
-                kgPerUnit = avgWeightValue; 
+                kgPerUnit = avgWeightG; 
 
                 const weightStr = Math.round(weight).toLocaleString('pt-BR'); 
                 const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
-                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
                 const kgPerUnitStr = kgPerUnit.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); 
 
                 let unitLabel = "g";
@@ -883,10 +992,18 @@
                 }
 
                 text += `\`Bloco ${item.talhao}\`\n\n`;
-                text += `*Peso (kg):* ${weightStr} kg\n\n`;
-                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr} ${unitLabel}\n\n`; 
-                text += `*Kg por Caixa:* ${kgPerBoxStr} kg\n\n`;
-                text += `*Unidades por Caixa:* ${unitsPerBoxStr} un\n\n\n`;
+                text += `*Peso (kg):* ${weightStr}\n\n`; 
+                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr}\n\n`; 
+                text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`;
+                text += `*Unidades por Caixa:* ${unitsPerBoxStr}\n\n`; 
+
+                // Adiciona campos extras se for SPG Oásis no WhatsApp também
+                if (item.partner === 'SPG Oásis') {
+                    if (item.productionDays) text += `*Dias de Produção:* ${item.productionDays}\n\n`;
+                    if (item.accumulatedUnits) text += `*Total Unid. Acumulado:* ${item.accumulatedUnits}\n\n`;
+                }
+                
+                text += `\n`;
             });
 
             let globalAvgWeight = 0;
@@ -895,7 +1012,7 @@
             }
             const globalAvgStr = globalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`; // Fixed formatting here
+            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`;
             text += `\`Total Unidades: ${totalUnits.toLocaleString('pt-BR')}\`\n\n`;
             text += `\`Peso Médio: ${globalAvgStr} g.unid\`\n\n`;
             text += `\`Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}\``;
@@ -922,6 +1039,88 @@
             }
             document.body.removeChild(textArea);
         }
+
+        // --- FUNÇÃO PARA GERAR IMAGEM HD (NOVA) ---
+        async function downloadImage() {
+            const element = document.getElementById('report-card');
+            const originalText = document.querySelector('button[onclick="downloadImage()"] span').innerText;
+            document.querySelector('button[onclick="downloadImage()"] span').innerText = "Gerando Imagem...";
+
+            try {
+                // AJUSTE: Scale alterado de 5 para 3. 
+                // Scale 5 cria uma imagem gigantesca que trava o navegador com muitos blocos.
+                // Scale 3 ainda é HD (aprox 1350px de largura) e segura para listas longas.
+                const options = {
+                    scale: 5, // Reverted to 5 based on user preference
+                    useCORS: true, 
+                    allowTaint: true,
+                    scrollY: -window.scrollY,
+                    backgroundColor: '#ffffff', 
+                    windowWidth: 480, 
+                    onclone: (doc) => {
+                        const el = doc.getElementById('report-card');
+                        const content = doc.getElementById('reportContent');
+                        
+                        if (el) { 
+                            el.style.width = '450px'; 
+                            el.style.maxWidth = '450px';
+                            el.style.margin = '0'; 
+                            el.style.boxShadow = 'none';
+                            el.style.borderRadius = '0';
+                            el.style.border = 'none';
+                        }
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
+                        }
+                    }
+                };
+
+                const canvas = await html2canvas(element, options);
+                
+                // Gera Link de Download
+                const imgData = canvas.toDataURL('image/png');
+                
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const weekNum = getWeekNumber(now);
+                let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+                const partnerInput = document.getElementById('partner');
+                let partnerName = "Geral"; 
+                if (partnerInput && partnerInput.value) {
+                    partnerName = partnerInput.value;
+                } else if (harvestData.length > 0 && harvestData[0].partner) {
+                    partnerName = harvestData[0].partner;
+                }
+
+                // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
+                let filePrefix = "Resumo da Pesagem (kg)";
+                if (partnerName === "SPG Oásis") {
+                    filePrefix = "Resumo da Produção";
+                }
+
+                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.png`;
+
+                // Cria elemento temporário para download
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (err) {
+                console.error("Erro ao gerar imagem:", err);
+                alert("Erro ao gerar imagem: " + err.message);
+            } finally {
+                document.querySelector('button[onclick="downloadImage()"] span').innerText = originalText;
+            }
+        }
+
 
         // --- FUNÇÃO DE DOWNLOAD PDF (Manual - Estilo Mobile Simulado) ---
         async function downloadPDF() {
@@ -998,8 +1197,14 @@
                     partnerName = harvestData[0].partner;
                 }
 
-                // Nome final: Resumo da Pesagem (kg) - Sexta-feira 26-12-2025 Semana 52 - Sítio Leitão.pdf
-                const fileName = `Resumo da Pesagem (kg) - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
+                // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
+                let filePrefix = "Resumo da Pesagem (kg)";
+                if (partnerName === "SPG Oásis") {
+                    filePrefix = "Resumo da Produção";
+                }
+
+                // Nome final do arquivo
+                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
 
                 pdf.save(fileName);
 
