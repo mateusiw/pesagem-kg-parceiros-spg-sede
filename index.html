@@ -43,8 +43,8 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp -->
-            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+            <!-- Botão WhatsApp (ID ADICIONADO: btnZap) -->
+            <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
             </button>
@@ -136,7 +136,17 @@
                             </div>
                         </div>
 
-                        <!-- REMOVIDO: Linha de Taras (Tare Cx e Pallet) -->
+                        <!-- Linha 2: Taras (ID: tareRow) -->
+                        <div id="tareRow" class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
+                                <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                             <div>
+                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Pallet (kg)</label>
+                                <input type="text" id="palletTare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 25" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
 
                         <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
                          <div id="netWeightWrapper" class="mb-3">
@@ -186,10 +196,6 @@
                             </div>
                         </div>
 
-                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
-                            <span>* Liq = Bruto</span>
-                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
-                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -381,10 +387,13 @@
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
+            const tareRow = document.getElementById('tareRow'); 
             const netWeightWrapper = document.getElementById('netWeightWrapper'); 
             const btnZap = document.getElementById('btnZap'); // Seleciona o botão Zap
             
             // Inputs específicos para validação
+            const tareInput = document.getElementById('tare');
+            const palletTareInput = document.getElementById('palletTare');
             const prodDaysInput = document.getElementById('productionDays');
             const plantedInput = document.getElementById('plantedUnits');
             const accumInput = document.getElementById('accumulatedUnits');
@@ -395,6 +404,12 @@
             if (partner === 'SPG Oásis') {
                 // EXIBIR CAMPOS EXTRAS
                 spgFields.classList.remove('hidden');
+
+                // OCULTAR CAMPOS DE TARA
+                tareRow.classList.add('hidden');
+                // Limpa os valores para não afetar o cálculo
+                document.getElementById('tare').value = '';
+                document.getElementById('palletTare').value = '';
                 
                 // OCULTAR PESO LÍQUIDO
                 netWeightWrapper.classList.add('hidden');
@@ -427,6 +442,8 @@
                 // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = true;
                 unitsPerBoxInput.required = false;
+                tareInput.required = false;
+                palletTareInput.required = false;
                 prodDaysInput.required = true;
                 plantedInput.required = true;
                 accumInput.required = true;
@@ -435,7 +452,8 @@
                 // OCULTAR CAMPOS EXTRAS
                 spgFields.classList.add('hidden');
 
-                // EXIBIR PESO LIQUIDO
+                // EXIBIR CAMPOS DE TARA E PESO LIQUIDO
+                tareRow.classList.remove('hidden');
                 netWeightWrapper.classList.remove('hidden');
 
                 // EXIBIR BOTÃO ZAP
@@ -465,6 +483,8 @@
                 // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = false;
                 unitsPerBoxInput.required = true;
+                tareInput.required = true;
+                palletTareInput.required = true;
                 prodDaysInput.required = false;
                 plantedInput.required = false;
                 accumInput.required = false;
@@ -480,8 +500,8 @@
             const partner = document.getElementById('partner').value; 
             
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
-            // REMOVIDO: const tare = ... (Campos de tara removidos)
-            // REMOVIDO: const palletTare = ...
+            const tare = parsePTBRNumber(document.getElementById('tare').value);
+            const palletTare = parsePTBRNumber(document.getElementById('palletTare').value);
             const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
             
             const netWeightInput = document.getElementById('harvestWeight');
@@ -489,13 +509,14 @@
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const avgInput = document.getElementById('averageWeight');
 
-            // 1. Calcular Peso Líquido (AGORA É IGUAL AO BRUTO, POIS TARA FOI REMOVIDA)
+            // 1. Calcular Peso Líquido (Igual para ambos)
             let netWeight = 0;
             if (grossWeight > 0) {
-                // Se não há tara para descontar, Líquido = Bruto
-                netWeight = grossWeight; 
+                const totalBoxTare = boxes * tare;
+                const totalTare = totalBoxTare + palletTare; 
+                netWeight = Math.max(0, grossWeight - totalTare);
                 
-                // Exibir com decimais se houver (não usar Math.round)
+                // ALTERAÇÃO: Exibir com decimais se houver (não usar Math.round)
                 netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
             } else {
                 netWeightInput.value = "";
@@ -603,7 +624,8 @@
         function clearBlockForm() {
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
-            // REMOVIDO: Limpeza de campos de tara
+            document.getElementById('tare').value = ''; 
+            document.getElementById('palletTare').value = ''; 
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
             document.getElementById('productionDays').value = ''; 
@@ -647,7 +669,8 @@
             document.getElementById('commercialVariety').value = item.commercialVariety;
             
             document.getElementById('boxes').value = item.boxes;
-            // REMOVIDO: Carregamento de campos de tara
+            document.getElementById('tare').value = item.tare || ''; 
+            document.getElementById('palletTare').value = item.palletTare || ''; 
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
             document.getElementById('totalUnits').value = item.totalUnits || ''; 
@@ -682,7 +705,8 @@
             const netWeightRaw = document.getElementById('harvestWeight').value; 
             const totalUnitsRaw = document.getElementById('totalUnits').value;
             const grossWeightRaw = document.getElementById('grossWeight').value;
-            // REMOVIDO: Leitura de campos de tara
+            const tareRaw = document.getElementById('tare').value;
+            const palletTareRaw = document.getElementById('palletTare').value; 
             const unitsPerBoxRaw = document.getElementById('unitsPerBox').value;
 
             const newItem = {
@@ -692,7 +716,8 @@
                 commercialVariety: document.getElementById('commercialVariety').value,
                 boxes: document.getElementById('boxes').value,
                 
-                // tare e palletTare removidos
+                tare: tareRaw,
+                palletTare: palletTareRaw, 
                 grossWeight: grossWeightRaw,
                 unitsPerBox: unitsPerBoxRaw,
                 
@@ -708,7 +733,7 @@
 
             if (editingIndex >= 0) {
                 harvestData[editingIndex] = newItem;
-                editingIndex = -1; // Reset editing index
+                clearBlockForm(); 
             } else {
                 harvestData.push(newItem);
             }
@@ -725,6 +750,7 @@
                 clearBlockForm();
                 editingIndex = -1;
             }
+            // else if (editingIndex > index) editingIndex--; // Not strictly needed if we reset editingIndex on clear
 
             harvestData.splice(index, 1);
             saveToStorage(); // SALVAR APÓS REMOVER
