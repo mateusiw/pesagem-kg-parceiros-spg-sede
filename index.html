@@ -43,8 +43,8 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp (ID ADICIONADO: btnZap) -->
-            <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+            <!-- Botão WhatsApp -->
+            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
             </button>
@@ -136,17 +136,7 @@
                             </div>
                         </div>
 
-                        <!-- Linha 2: Taras (ID: tareRow) -->
-                        <div id="tareRow" class="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Cx (kg)</label>
-                                <input type="text" id="tare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                            </div>
-                             <div>
-                                <label class="text-[10px] font-bold text-slate-500 mb-1 block">Tara Pallet (kg)</label>
-                                <input type="text" id="palletTare" oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 25" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                            </div>
-                        </div>
+                        <!-- REMOVIDO: Linha de Taras (Tare Cx e Pallet) -->
 
                         <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
                          <div id="netWeightWrapper" class="mb-3">
@@ -196,6 +186,10 @@
                             </div>
                         </div>
 
+                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
+                            <span>* Liq = Bruto</span>
+                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
+                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -387,13 +381,10 @@
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
-            const tareRow = document.getElementById('tareRow'); 
             const netWeightWrapper = document.getElementById('netWeightWrapper'); 
             const btnZap = document.getElementById('btnZap'); // Seleciona o botão Zap
             
             // Inputs específicos para validação
-            const tareInput = document.getElementById('tare');
-            const palletTareInput = document.getElementById('palletTare');
             const prodDaysInput = document.getElementById('productionDays');
             const plantedInput = document.getElementById('plantedUnits');
             const accumInput = document.getElementById('accumulatedUnits');
@@ -404,11 +395,6 @@
             if (partner === 'SPG Oásis') {
                 // EXIBIR CAMPOS EXTRAS
                 spgFields.classList.remove('hidden');
-
-                // OCULTAR CAMPOS DE TARA
-                tareRow.classList.add('hidden');
-                document.getElementById('tare').value = '';
-                document.getElementById('palletTare').value = '';
                 
                 // OCULTAR PESO LÍQUIDO
                 netWeightWrapper.classList.add('hidden');
@@ -441,8 +427,6 @@
                 // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = true;
                 unitsPerBoxInput.required = false;
-                tareInput.required = false;
-                palletTareInput.required = false;
                 prodDaysInput.required = true;
                 plantedInput.required = true;
                 accumInput.required = true;
@@ -451,8 +435,7 @@
                 // OCULTAR CAMPOS EXTRAS
                 spgFields.classList.add('hidden');
 
-                // EXIBIR CAMPOS DE TARA E PESO LIQUIDO
-                tareRow.classList.remove('hidden');
+                // EXIBIR PESO LIQUIDO
                 netWeightWrapper.classList.remove('hidden');
 
                 // EXIBIR BOTÃO ZAP
@@ -482,8 +465,6 @@
                 // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = false;
                 unitsPerBoxInput.required = true;
-                tareInput.required = true;
-                palletTareInput.required = true;
                 prodDaysInput.required = false;
                 plantedInput.required = false;
                 accumInput.required = false;
@@ -499,8 +480,8 @@
             const partner = document.getElementById('partner').value; 
             
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
-            const tare = parsePTBRNumber(document.getElementById('tare').value);
-            const palletTare = parsePTBRNumber(document.getElementById('palletTare').value);
+            // REMOVIDO: const tare = ... (Campos de tara removidos)
+            // REMOVIDO: const palletTare = ...
             const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
             
             const netWeightInput = document.getElementById('harvestWeight');
@@ -508,14 +489,13 @@
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const avgInput = document.getElementById('averageWeight');
 
-            // 1. Calcular Peso Líquido (Igual para ambos)
+            // 1. Calcular Peso Líquido (AGORA É IGUAL AO BRUTO, POIS TARA FOI REMOVIDA)
             let netWeight = 0;
             if (grossWeight > 0) {
-                const totalBoxTare = boxes * tare;
-                const totalTare = totalBoxTare + palletTare; 
-                netWeight = Math.max(0, grossWeight - totalTare);
+                // Se não há tara para descontar, Líquido = Bruto
+                netWeight = grossWeight; 
                 
-                // ALTERAÇÃO: Exibir com decimais se houver (não usar Math.round)
+                // Exibir com decimais se houver (não usar Math.round)
                 netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
             } else {
                 netWeightInput.value = "";
@@ -621,11 +601,9 @@
         }
 
         function clearBlockForm() {
-            // document.getElementById('partner').value = ''; // REMOVIDO: Mantém o parceiro selecionado
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
-            document.getElementById('tare').value = ''; 
-            document.getElementById('palletTare').value = ''; 
+            // REMOVIDO: Limpeza de campos de tara
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
             document.getElementById('productionDays').value = ''; 
@@ -657,10 +635,6 @@
         }
 
         function editItem(index) {
-            const allItems = harvestData; // Original Data
-            // We need to find the correct item based on the filtered view if we are clicking from a filtered list.
-            // But here, we pass the REAL index from renderList.
-            
             const item = harvestData[index];
             editingIndex = index; 
 
@@ -673,8 +647,7 @@
             document.getElementById('commercialVariety').value = item.commercialVariety;
             
             document.getElementById('boxes').value = item.boxes;
-            document.getElementById('tare').value = item.tare || ''; 
-            document.getElementById('palletTare').value = item.palletTare || ''; 
+            // REMOVIDO: Carregamento de campos de tara
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
             document.getElementById('totalUnits').value = item.totalUnits || ''; 
@@ -709,8 +682,7 @@
             const netWeightRaw = document.getElementById('harvestWeight').value; 
             const totalUnitsRaw = document.getElementById('totalUnits').value;
             const grossWeightRaw = document.getElementById('grossWeight').value;
-            const tareRaw = document.getElementById('tare').value;
-            const palletTareRaw = document.getElementById('palletTare').value; 
+            // REMOVIDO: Leitura de campos de tara
             const unitsPerBoxRaw = document.getElementById('unitsPerBox').value;
 
             const newItem = {
@@ -720,13 +692,12 @@
                 commercialVariety: document.getElementById('commercialVariety').value,
                 boxes: document.getElementById('boxes').value,
                 
-                tare: tareRaw,
-                palletTare: palletTareRaw, 
+                // tare e palletTare removidos
                 grossWeight: grossWeightRaw,
                 unitsPerBox: unitsPerBoxRaw,
                 
-                harvestWeight: netWeightRaw, // Salva o Peso Líquido como oficial
-                totalUnits: totalUnitsRaw,   // Salva o Total Unidades oficial
+                harvestWeight: netWeightRaw, 
+                totalUnits: totalUnitsRaw,   
                 averageWeight: document.getElementById('averageWeight').value,
 
                 // Novos Campos SPG
@@ -754,7 +725,6 @@
                 clearBlockForm();
                 editingIndex = -1;
             }
-            // else if (editingIndex > index) editingIndex--; // Not strictly needed if we reset editingIndex on clear
 
             harvestData.splice(index, 1);
             saveToStorage(); // SALVAR APÓS REMOVER
@@ -772,40 +742,34 @@
             }
         }
 
-        // --- FUNÇÃO DE RENDERIZAÇÃO DA LISTA (COM FILTRO) ---
         function renderList() {
             const list = document.getElementById('itemsList');
             list.innerHTML = '';
-            
-            const displayData = getFilteredData();
 
-            if (displayData.length === 0) {
+            if (harvestData.length === 0) {
                 const emptyLi = document.createElement('li');
                 emptyLi.className = "text-center text-slate-400 italic py-2";
-                emptyLi.innerText = "Nenhum bloco para este parceiro.";
+                emptyLi.innerText = "Nenhum bloco adicionado.";
                 list.appendChild(emptyLi);
                 return;
             }
 
-            displayData.forEach((item) => {
-                // PRECISAMOS DO INDEX ORIGINAL PARA EDITAR/REMOVER CORRETAMENTE
-                const originalIndex = harvestData.indexOf(item);
-
+            harvestData.forEach((item, index) => {
                 const li = document.createElement('li');
-                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                const activeClass = (index === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
 
                 li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
                 li.innerHTML = `
                     <span>
                         <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
                         <b>#${item.talhao}</b> - ${item.variety} 
-                        ${originalIndex === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                        ${index === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
                     </span>
                     <div class="flex items-center">
-                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                        <button onclick="editItem(${index})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
                             <i data-lucide="pencil" width="14"></i>
                         </button>
-                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                        <button onclick="removeItem(${index})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
                             <i data-lucide="trash-2" width="14"></i>
                         </button>
                     </div>
@@ -815,7 +779,6 @@
             lucide.createIcons();
         }
 
-        // --- FUNÇÃO DE RENDERIZAÇÃO DO RELATÓRIO (COM FILTRO) ---
         function renderReport() {
             const container = document.getElementById('reportContent');
             const footerContainer = document.getElementById('operationalFooter');
