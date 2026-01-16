@@ -43,8 +43,8 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp -->
-            <button onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
+            <!-- Botão WhatsApp (ID: btnZap) -->
+            <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
             </button>
@@ -136,6 +136,8 @@
                             </div>
                         </div>
 
+                        <!-- CAMPOS DE TARA REMOVIDOS -->
+
                         <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
                          <div id="netWeightWrapper" class="mb-3">
                             <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
@@ -185,7 +187,7 @@
                         </div>
 
                         <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
-                            <span>* Liq = Bruto</span>
+                            <span>* Liq = Bruto (Tara removida)</span>
                             <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
                         </div>
                     </div>
@@ -278,20 +280,18 @@
                 if (storedData) {
                     harvestData = JSON.parse(storedData);
                     
-                    // Se houver dados, tenta recuperar o parceiro do último item para configurar o formulário
                     if (harvestData.length > 0) {
                         const lastItem = harvestData[harvestData.length - 1];
                         if(lastItem.partner) {
                              const partnerSelect = document.getElementById('partner');
                              if(partnerSelect) {
                                  partnerSelect.value = lastItem.partner;
-                                 toggleInputMode(); // Ajusta os campos com base no parceiro carregado
+                                 toggleInputMode(); 
                                  updateDynamicTitle();
                              }
                         }
                     }
                     
-                    // Renderiza lista e relatório COM FILTRO inicial
                     renderList();
                     renderReport();
                 }
@@ -304,15 +304,9 @@
         function getFilteredData() {
             const partnerSelect = document.getElementById('partner');
             const selectedPartner = partnerSelect ? partnerSelect.value : '';
-            
-            // Se nenhum parceiro selecionado (ou "Selecione..."), mostra tudo?
-            // Melhor: Se vazio, não mostra nada ou mostra tudo.
-            // Para segurança e clareza, vamos mostrar tudo se vazio, mas se tiver selecionado, filtra.
             if (!selectedPartner) return harvestData;
-            
             return harvestData.filter(item => item.partner === selectedPartner);
         }
-
 
         // --- FUNÇÕES DE DATA E HORA ---
 
@@ -335,35 +329,24 @@
         function updateDynamicTitle() {
             const now = new Date();
             const hours = now.getHours();
-            
-            // Lógica de Saudação
             let greeting = getGreeting();
-
-            // Lógica de Dia da Semana
             const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
             const weekDay = days[now.getDay()];
-
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const year = now.getFullYear();
             const weekNumber = getWeekNumber(now);
-            
             const ampm = hours >= 12 ? 'PM' : 'AM';
             const timeString = `${String(hours).padStart(2, '0')}:${minutes}${ampm}`; 
 
-            // LOGICA NOVA: Nome do Parceiro Dinâmico
             const partnerInput = document.getElementById('partner');
             const currentPartner = (partnerInput && partnerInput.value) ? partnerInput.value : '';
-
             const titleElement = document.getElementById('reportTitle');
             
-            // CONDICIONAL ESPECÍFICA PARA SPG OÁSIS
             if (currentPartner === 'SPG Oásis') {
-                // Se for SPG Oásis: "Pessoal" + "Resumo da Produção"
                 titleElement.innerHTML = `${greeting}, Pessoal!<br>Resumo da Produção de ${weekDay}`;
             } else {
-                // Se for outro parceiro (ou vazio): "[Nome]" + "Resumo da Pesagem (kg)"
                 const displayPartner = currentPartner || 'Pessoal';
                 titleElement.innerHTML = `${greeting}, ${displayPartner}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
             }
@@ -380,9 +363,8 @@
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
             const netWeightWrapper = document.getElementById('netWeightWrapper'); 
-            const btnZap = document.getElementById('btnZap'); // Seleciona o botão Zap
+            const btnZap = document.getElementById('btnZap'); 
             
-            // Inputs específicos para validação
             const prodDaysInput = document.getElementById('productionDays');
             const plantedInput = document.getElementById('plantedUnits');
             const accumInput = document.getElementById('accumulatedUnits');
@@ -391,16 +373,10 @@
             const labelUnitsPerBox = document.getElementById('labelUnitsPerBox');
 
             if (partner === 'SPG Oásis') {
-                // EXIBIR CAMPOS EXTRAS
                 spgFields.classList.remove('hidden');
-                
-                // OCULTAR PESO LÍQUIDO
                 netWeightWrapper.classList.add('hidden');
-
-                // OCULTAR BOTÃO ZAP
                 if (btnZap) btnZap.style.display = 'none';
 
-                // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
                 totalUnitsInput.removeAttribute('readonly');
                 totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800'); 
                 totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800'); 
@@ -417,12 +393,10 @@
                 unitsPerBoxInput.removeAttribute('oninput');
                 unitsPerBoxInput.placeholder = "Calc. Auto";
 
-                // Label Média (ALTERADO: Removido "(Auto)" para alinhar)
                 labelUnitsPerBox.classList.add('text-emerald-600');
                 labelUnitsPerBox.classList.remove('text-slate-500');
-                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
+                labelUnitsPerBox.innerText = "Média Unid. p/ Caixa (Auto)";
                 
-                // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = true;
                 unitsPerBoxInput.required = false;
                 prodDaysInput.required = true;
@@ -430,16 +404,10 @@
                 accumInput.required = true;
 
             } else {
-                // OCULTAR CAMPOS EXTRAS
                 spgFields.classList.add('hidden');
-
-                // EXIBIR PESO LIQUIDO
                 netWeightWrapper.classList.remove('hidden');
-
-                // EXIBIR BOTÃO ZAP
                 if (btnZap) btnZap.style.display = 'flex';
 
-                // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
                 totalUnitsInput.setAttribute('readonly', true);
                 totalUnitsInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
                 totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
@@ -460,7 +428,6 @@
                 labelUnitsPerBox.classList.add('text-slate-500');
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
                 
-                // Configurar REQUIRED (Validação Nativa)
                 totalUnitsInput.required = false;
                 unitsPerBoxInput.required = true;
                 prodDaysInput.required = false;
@@ -468,7 +435,6 @@
                 accumInput.required = false;
             }
             
-            // Recalcula para garantir consistência
             calculateValues();
         }
 
@@ -485,13 +451,10 @@
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const avgInput = document.getElementById('averageWeight');
 
-            // 1. Calcular Peso Líquido (IGUAL AO BRUTO)
+            // 1. Calcular Peso Líquido (AGORA É IGUAL AO BRUTO)
             let netWeight = 0;
             if (grossWeight > 0) {
-                // Se não há tara para descontar, Líquido = Bruto
                 netWeight = grossWeight; 
-                
-                // Exibir com decimais se houver (não usar Math.round)
                 netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
             } else {
                 netWeightInput.value = "";
@@ -599,7 +562,6 @@
         function clearBlockForm() {
             document.getElementById('talhao').value = '';
             document.getElementById('boxes').value = '';
-            // REMOVIDO: Limpeza de campos de tara
             document.getElementById('grossWeight').value = ''; 
             document.getElementById('unitsPerBox').value = '';
             document.getElementById('productionDays').value = ''; 
@@ -643,7 +605,6 @@
             document.getElementById('commercialVariety').value = item.commercialVariety;
             
             document.getElementById('boxes').value = item.boxes;
-            // REMOVIDO: Carregamento de campos de tara
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
             document.getElementById('totalUnits').value = item.totalUnits || ''; 
@@ -678,7 +639,6 @@
             const netWeightRaw = document.getElementById('harvestWeight').value; 
             const totalUnitsRaw = document.getElementById('totalUnits').value;
             const grossWeightRaw = document.getElementById('grossWeight').value;
-            // REMOVIDO: Leitura de campos de tara
             const unitsPerBoxRaw = document.getElementById('unitsPerBox').value;
 
             const newItem = {
@@ -688,12 +648,11 @@
                 commercialVariety: document.getElementById('commercialVariety').value,
                 boxes: document.getElementById('boxes').value,
                 
-                // tare e palletTare removidos
                 grossWeight: grossWeightRaw,
                 unitsPerBox: unitsPerBoxRaw,
                 
-                harvestWeight: netWeightRaw, // Salva o Peso Líquido como oficial
-                totalUnits: totalUnitsRaw,   // Salva o Total Unidades oficial
+                harvestWeight: netWeightRaw, 
+                totalUnits: totalUnitsRaw,   
                 averageWeight: document.getElementById('averageWeight').value,
 
                 // Novos Campos SPG
