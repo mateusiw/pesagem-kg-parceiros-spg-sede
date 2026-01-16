@@ -186,10 +186,6 @@
                             </div>
                         </div>
 
-                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
-                            <span>* Liq = Bruto</span>
-                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
-                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -468,6 +464,7 @@
             const partner = document.getElementById('partner').value; 
             
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
+            // Tara removida dos cálculos
             const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
             
             const netWeightInput = document.getElementById('harvestWeight');
@@ -720,20 +717,17 @@
         }
 
         function clearAll() {
-            if(confirm('Tem certeza? Isso apagará todos os dados.')) {
-                // Ao invés de harvestData = [], vamos remover apenas os que estão visíveis
-                // para respeitar a lógica de "ocultar" os outros.
-                // Mas o usuário pediu "Limpar Tudo". Vamos limpar o filtro atual.
-                
-                const currentPartner = document.getElementById('partner').value;
-                if (!currentPartner) {
-                     harvestData = []; // Se não tem filtro, limpa tudo mesmo
-                } else {
-                    // Remove itens do parceiro atual
-                    harvestData = harvestData.filter(item => item.partner !== currentPartner);
-                }
+            const partnerSelect = document.getElementById('partner');
+            const currentPartner = partnerSelect ? partnerSelect.value : '';
 
-                saveToStorage(); 
+            if(!currentPartner) return;
+
+            if(confirm(`Tem certeza que deseja limpar os dados de ${currentPartner}?`)) {
+                // Remove apenas os itens do parceiro atual da memória
+                harvestData = harvestData.filter(item => item.partner !== currentPartner);
+                
+                saveToStorage(); // Atualiza o storage (se for SPG, limpa do disco; se for outro, mantém SPG no disco)
+                
                 clearBlockForm(); 
                 renderReport();
                 renderList();
@@ -889,9 +883,10 @@
                              <!-- Divisor sutil -->
                              <div class="h-px bg-slate-200 my-2"></div>
 
-                             <div class="text-[11px] font-bold text-blue-600 flex items-center gap-1">
-                                 <!-- Icone removido -->
-                                Dias de Produção: ${days} dias
+                             <div class="text-[11px] font-bold text-blue-600 flex items-center justify-between">
+                                <span>Dias de Produção: ${days} dias</span>
+                                <!-- ALTERADO: Cor laranja para destaque -->
+                                <span class="text-orange-600 font-extrabold">Qtd. Plantada: ${planted}</span>
                             </div>
                         </div>`;
                     }
