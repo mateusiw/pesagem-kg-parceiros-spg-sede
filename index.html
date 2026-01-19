@@ -132,7 +132,8 @@
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
-                                <input type="text" id="grossWeight" required oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <!-- ALTERADO AQUI: formatDecimalInput em vez de formatNumberInput -->
+                                <input type="text" id="grossWeight" required oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
 
@@ -186,6 +187,10 @@
                             </div>
                         </div>
 
+                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
+                            <span>* Liq = Bruto</span>
+                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
+                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -717,17 +722,9 @@
         }
 
         function clearAll() {
-            const partnerSelect = document.getElementById('partner');
-            const currentPartner = partnerSelect ? partnerSelect.value : '';
-
-            if(!currentPartner) return;
-
-            if(confirm(`Tem certeza que deseja limpar os dados de ${currentPartner}?`)) {
-                // Remove apenas os itens do parceiro atual da memória
-                harvestData = harvestData.filter(item => item.partner !== currentPartner);
-                
-                saveToStorage(); // Atualiza o storage (se for SPG, limpa do disco; se for outro, mantém SPG no disco)
-                
+            if(confirm('Tem certeza? Isso apagará todos os dados.')) {
+                harvestData = [];
+                saveToStorage(); // SALVAR APÓS LIMPAR TUDO
                 clearBlockForm(); 
                 renderReport();
                 renderList();
@@ -745,44 +742,23 @@
                 list.appendChild(emptyLi);
                 return;
             }
-            
-            // FILTRA VISUALMENTE
-            const displayData = getFilteredData();
 
-            if (displayData.length === 0 && harvestData.length > 0) {
-                 // Tem dados, mas não desse parceiro
-                 const emptyLi = document.createElement('li');
-                 emptyLi.className = "text-center text-slate-400 italic py-2";
-                 emptyLi.innerText = "Nenhum bloco para este parceiro.";
-                 list.appendChild(emptyLi);
-                 return;
-            } else if (displayData.length === 0) {
-                 const emptyLi = document.createElement('li');
-                 emptyLi.className = "text-center text-slate-400 italic py-2";
-                 emptyLi.innerText = "Nenhum bloco adicionado.";
-                 list.appendChild(emptyLi);
-                 return;
-            }
-
-            displayData.forEach((item) => {
-                // IMPORTANTE: Encontrar o índice real no array original harvestData
-                const originalIndex = harvestData.indexOf(item);
-
+            harvestData.forEach((item, index) => {
                 const li = document.createElement('li');
-                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                const activeClass = (index === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
 
                 li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
                 li.innerHTML = `
                     <span>
                         <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
                         <b>#${item.talhao}</b> - ${item.variety} 
-                        ${originalIndex === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                        ${index === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
                     </span>
                     <div class="flex items-center">
-                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                        <button onclick="editItem(${index})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
                             <i data-lucide="pencil" width="14"></i>
                         </button>
-                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                        <button onclick="removeItem(${index})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
                             <i data-lucide="trash-2" width="14"></i>
                         </button>
                     </div>
