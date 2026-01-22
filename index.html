@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp (ID: btnZap) -->
+            <!-- Botão WhatsApp -->
             <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
@@ -132,12 +132,9 @@
                             </div>
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Peso Bruto (kg)</label>
-                                <!-- ALTERADO AQUI: formatDecimalInput em vez de formatNumberInput -->
                                 <input type="text" id="grossWeight" required oninput="formatDecimalInput(this); calculateValues()" placeholder="Ex: 1.300" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                         </div>
-
-                        <!-- CAMPOS DE TARA REMOVIDOS DEFINITIVAMENTE -->
 
                         <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
                          <div id="netWeightWrapper" class="mb-3">
@@ -187,10 +184,6 @@
                             </div>
                         </div>
 
-                        <div class="text-[10px] text-slate-400 mt-3 italic flex flex-col gap-1 leading-relaxed">
-                            <span>* Liq = Bruto</span>
-                            <span>* Se SPG Oásis: Unidades manual, Média auto.</span>
-                        </div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-4 active:scale-95">
@@ -232,14 +225,14 @@
                     </div>
                 </div>
 
+                <!-- Painel de Totais (MOVIDO PARA CIMA) -->
+                <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0">
+                     <!-- Conteúdo injetado via JS -->
+                </div>
+
                 <!-- Conteúdo -->
                 <div id="reportContent" class="divide-y divide-slate-50 flex-1 overflow-y-auto">
                     <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Adicione blocos no formulário ao lado.</div>
-                </div>
-
-                <!-- Operacional Footer -->
-                <div id="operationalFooter" class="bg-white border-t border-slate-200 p-4 shrink-0">
-                     <!-- Conteúdo injetado via JS -->
                 </div>
 
                 <!-- Rodapé da Marca -->
@@ -742,23 +735,44 @@
                 list.appendChild(emptyLi);
                 return;
             }
+            
+            // FILTRA VISUALMENTE
+            const displayData = getFilteredData();
 
-            harvestData.forEach((item, index) => {
+            if (displayData.length === 0 && harvestData.length > 0) {
+                 // Tem dados, mas não desse parceiro
+                 const emptyLi = document.createElement('li');
+                 emptyLi.className = "text-center text-slate-400 italic py-2";
+                 emptyLi.innerText = "Nenhum bloco para este parceiro.";
+                 list.appendChild(emptyLi);
+                 return;
+            } else if (displayData.length === 0) {
+                 const emptyLi = document.createElement('li');
+                 emptyLi.className = "text-center text-slate-400 italic py-2";
+                 emptyLi.innerText = "Nenhum bloco adicionado.";
+                 list.appendChild(emptyLi);
+                 return;
+            }
+
+            displayData.forEach((item) => {
+                // IMPORTANTE: Encontrar o índice real no array original harvestData
+                const originalIndex = harvestData.indexOf(item);
+
                 const li = document.createElement('li');
-                const activeClass = (index === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
 
                 li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
                 li.innerHTML = `
                     <span>
                         <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
                         <b>#${item.talhao}</b> - ${item.variety} 
-                        ${index === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                        ${originalIndex === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
                     </span>
                     <div class="flex items-center">
-                        <button onclick="editItem(${index})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
                             <i data-lucide="pencil" width="14"></i>
                         </button>
-                        <button onclick="removeItem(${index})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
                             <i data-lucide="trash-2" width="14"></i>
                         </button>
                     </div>
@@ -870,13 +884,15 @@
 
                     const statsContent = `
                         <div class="grid grid-cols-3 gap-2"> 
+                            <!-- Linha 1 (AGORA EM CIMA): Totais Finais -->
+                            ${createStatItem('weight', item.harvestWeight, 'PESO (KG)', 'orange')}
+                            ${createStatItem('hash', item.totalUnits, 'UNIDADES', 'orange')}
+                            ${createStatItem('scale', avgWeightFormatted, 'PESO MÉDIO (G/UNID.)', 'orange')}
+
+                            <!-- Linha 2 (AGORA EM BAIXO): Dados da Embalagem -->
                             ${createStatItem('box', item.boxes, 'Caixas')}
                             ${createStatItem('package-check', avgKgBoxStr, 'MÉDIA KG POR CAIXA')}
                             ${createStatItem('layers', item.unitsPerBox, 'MÉDIA UNIDADES POR CAIXA')}
-
-                            ${createStatItem('weight', item.harvestWeight, 'PESO (KG)', true)}
-                            ${createStatItem('hash', item.totalUnits, 'Unidades')}
-                            ${createStatItem('scale', avgWeightFormatted, 'PESO MÉDIO (G/UNID.)')}
                         </div>
                     `;
 
@@ -916,12 +932,16 @@
             const sumWeightStr = sumWeight.toLocaleString('pt-BR');
             const sumTotalUnitsStr = sumTotalUnits.toLocaleString('pt-BR');
             
+            // CORREÇÃO: Cálculo da média ponderada real (Peso Total / Total Unidades)
             let finalAvgWeight = 0;
             if (sumTotalUnits > 0) {
+                // sumWeight is in kg. result is kg/unit (0.234)
                 finalAvgWeight = sumWeight / sumTotalUnits;
             }
+            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
+            // INVERSÃO DA ORDEM DO RODAPÉ (TOTAIS EM CIMA)
             footerContainer.innerHTML = `
                 <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
                 <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
@@ -937,7 +957,7 @@
 
                     <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div> <!-- Removed 'kg' -->
                     </div>
 
                     <!-- Separador Horizontal -->
@@ -950,6 +970,7 @@
                     </div>
 
                     <div class="text-center">
+                        <!-- AJUSTE: Adicionado ponto final em (G/UNID.) -->
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G/UNID.)</div>
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
@@ -960,11 +981,26 @@
         }
 
         // Helper (SEM BORDAS)
-        function createStatItem(iconName, value, label, highlight = false) {
-            const textColor = highlight ? 'text-emerald-800' : 'text-slate-700';
-            const labelColor = highlight ? 'text-emerald-600/70' : 'text-slate-400';
-            const iconColor = highlight ? 'text-emerald-600' : 'text-slate-400';
-            const bgColor = highlight ? 'bg-emerald-50/50' : 'bg-slate-50';
+        function createStatItem(iconName, value, label, theme = 'default') {
+            
+            let textColor = 'text-slate-700';
+            let labelColor = 'text-slate-400';
+            let iconColor = 'text-slate-400';
+            let bgColor = 'bg-slate-50';
+
+            // Configuração dos Temas de Cor
+            if (theme === 'emerald' || theme === true) {
+                textColor = 'text-emerald-800';
+                labelColor = 'text-emerald-600/70';
+                iconColor = 'text-emerald-600';
+                bgColor = 'bg-emerald-50/50';
+            } else if (theme === 'orange') {
+                // TEMA LARANJA CLARINHO
+                textColor = 'text-orange-800';
+                labelColor = 'text-orange-600/70';
+                iconColor = 'text-orange-500';
+                bgColor = 'bg-orange-50';
+            }
 
             return `
             <div class="flex flex-col items-center justify-center p-3 rounded-xl ${bgColor}">
