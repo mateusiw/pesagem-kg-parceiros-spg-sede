@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resumo Colheita Parceiros SPG SEDE</title>
     
-    <!-- Configurações PWA com Ícone Personalizado -->
+    <!-- Configurações PWA com Ícone Personalizado (LOGO NOVO TRANSPARENTE) -->
     <link rel="icon" type="image/png" href="https://i.imgur.com/f7UnnL0.png">
     <link rel="apple-touch-icon" href="https://i.imgur.com/f7UnnL0.png">
     <link rel="manifest" href='data:application/manifest+json,{"name":"SPG SEDE 2026","short_name":"SPG SEDE","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff","icons":[{"src":"https://i.imgur.com/f7UnnL0.png","sizes":"192x192","type":"image/png"},{"src":"https://i.imgur.com/f7UnnL0.png","sizes":"512x512","type":"image/png"}]}'>
@@ -18,6 +18,7 @@
     <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- BIBLIOTECAS MANUAIS (html2canvas + jsPDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -25,6 +26,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Garante espaçamento melhor em inputs no mobile */
         input, select { line-height: 1.5; }
     </style>
 </head>
@@ -33,6 +35,7 @@
     <!-- Navbar -->
     <div class="bg-white border-b border-slate-200 px-4 py-3 flex flex-col md:flex-row justify-between items-center shadow-sm sticky top-0 z-40 gap-3">
         <div class="flex items-center gap-3 w-full md:w-auto">
+            <!-- LOGO NOVO NA NAVBAR -->
             <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="w-8 h-8 rounded-lg shadow-sm border border-slate-100">
             <div>
                 <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG SEDE</h1>
@@ -40,14 +43,19 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+            <!-- Botão WhatsApp (ID: btnZap) -->
             <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
             </button>
+            
+            <!-- Botão Imagem (NOVO) -->
             <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
                 <i data-lucide="image" class="w-4 h-4"></i>
                 <span>Baixar Imagem</span>
             </button>
+
+            <!-- Botão PDF -->
             <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
                 <i data-lucide="file-down" class="w-4 h-4"></i>
                 <span>Baixar PDF</span>
@@ -60,6 +68,7 @@
         <!-- COLUNA DA ESQUERDA: CONTROLES -->
         <div class="w-full lg:w-1/3 space-y-4">
             
+            <!-- ADICIONAR BLOCOS -->
             <div id="formContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-colors duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -72,6 +81,7 @@
                 
                 <form id="harvestForm" onsubmit="addItem(event)" class="space-y-4">
                     
+                    <!-- LINHA 1: PARCEIRO E BLOCO -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parceiro</label>
@@ -94,6 +104,7 @@
                         </div>
                     </div>
 
+                    <!-- LINHA DE VARIEDADE E COMERCIAL -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cultura</label>
@@ -109,9 +120,11 @@
                         </div>
                     </div>
 
+                    <!-- INFORMAÇÕES ADICIONAIS -->
                     <div class="border-t border-slate-100 my-2 pt-2">
                         <label class="text-xs font-bold text-slate-400 block mb-3">Informações Adicionais</label>
                         
+                        <!-- Linha 1: Caixas e Peso Bruto -->
                         <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label class="text-[10px] font-bold text-slate-500 mb-1 block">Caixas</label>
@@ -123,53 +136,60 @@
                             </div>
                         </div>
 
+                        <!-- REORGANIZADO: Peso Líquido (Linha Própria, visível apenas para outros parceiros) -->
                          <div id="netWeightWrapper" class="mb-3">
                             <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Líquido (kg)</label>
                             <input type="text" id="harvestWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                         </div>
 
+                        <!-- REORGANIZADO: Unidades (2 em cima) e Peso Médio (1 em baixo total) -->
+                        <!-- Linha Superior: Média e Total -->
                         <div class="grid grid-cols-2 gap-3 mb-3">
                              <div>
                                 <label id="labelUnitsPerBox" class="text-[10px] font-bold text-slate-500 mb-1 block">Média Unid. p/ Caixa</label>
-                                <input type="text" id="unitsPerBox" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 18" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-colors duration-300">
+                                <input type="text" id="unitsPerBox" oninput="formatNumberInput(this); calculateValues()" placeholder="Ex: 18" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                             </div>
                              <div>
                                 <label id="labelTotalUnits" class="text-[10px] font-bold text-emerald-600 mb-1 block">Total Unidades</label>
-                                <input type="text" id="totalUnits" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none transition-colors duration-300">
+                                <input type="text" id="totalUnits" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                             </div>
                         </div>
 
+                        <!-- Linha Inferior: Peso Médio (Full Width) -->
                         <div class="mb-2">
                            <label class="text-[10px] font-bold text-emerald-600 mb-1 block">Peso Médio (g)</label>
-                           <input type="text" id="averageWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none transition-colors duration-300">
+                           <input type="text" id="averageWeight" readonly placeholder="Calc. Auto" class="w-full p-2 border border-emerald-200 bg-emerald-50 rounded-lg text-sm text-emerald-800 font-bold focus:outline-none">
                        </div>
 
-                        <!-- CAMPOS EXTRAS SPG OÁSIS -->
+                        <!-- CAMPOS EXTRAS SPG OÁSIS (Inicialmente Ocultos) -->
                         <div id="spgOasisFields" class="hidden border-t border-slate-100 pt-2 mt-2">
                             <label class="text-[10px] font-bold text-emerald-600 block mb-2 uppercase tracking-wide">Dados Exclusivos SPG</label>
                             
+                            <!-- LINHA 1 EXTRA: Dias e Qtd Plantada -->
                             <div class="grid grid-cols-2 gap-3 mb-3">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Status da Colheita</label>
-                                    <select id="harvestStatus" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                                        <option value="Em andamento">Em andamento</option>
-                                        <option value="Finalizado">Finalizado</option>
-                                    </select>
-                                </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-500 mb-1 block">Dias de Produção</label>
                                     <input type="number" id="productionDays" placeholder="Ex: 45" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-3 mb-3">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-500 mb-1 block">Qtd. Plantada</label>
                                     <input type="text" id="plantedUnits" oninput="formatNumberInput(this)" placeholder="Ex: 20.000" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
+                            </div>
+                            
+                            <!-- LINHA 2 EXTRA: Acumulado e Status -->
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-500 mb-1 block">Total Unid. Acumulado</label>
                                     <input type="text" id="accumulatedUnits" oninput="formatNumberInput(this)" placeholder="Ex: 15.000" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <!-- NOVO: Status do Bloco -->
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Status</label>
+                                    <select id="harvestStatus" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                        <option value="Em Andamento">Em Andamento</option>
+                                        <option value="Finalizado">Finalizado</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -182,6 +202,7 @@
                 </form>
             </div>
 
+            <!-- Lista de Itens -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-bold text-slate-700">Itens Gerados</h3>
@@ -198,28 +219,34 @@
             
             <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
                 
+                <!-- Cabeçalho - ADICIONADO antialiased para nitidez -->
                 <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
+                    <!-- LOGO NOVO SEM mix-blend-multiply (já é transparente) -->
                     <img src="https://i.imgur.com/f7UnnL0.png" alt="Logo SPG" class="absolute top-4 right-4 w-20 h-20 z-0" style="image-rendering: -webkit-optimize-contrast;">
                     <div class="relative z-10 w-full pr-24"> 
                         <h2 id="reportTitle" class="text-sm font-bold leading-snug tracking-normal">
-                            <!-- JS -->
+                            <!-- Injetado via JS -->
                         </h2>
                         <div class="mt-3 pt-3 border-t border-white/20">
                              <span id="headerDateTime" class="text-xs font-medium text-emerald-50 block opacity-90 tracking-wide">
-                                <!-- JS -->
+                                <!-- Injetado via JS -->
                             </span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Painel de Totais (REPOSICIONADO PARA CIMA) -->
+                <!-- Use border-b para separar do conteúdo -->
                 <div id="operationalFooter" class="bg-white border-b border-slate-200 p-4 shrink-0">
-                     <!-- JS -->
+                     <!-- Conteúdo injetado via JS -->
                 </div>
 
+                <!-- Conteúdo -->
                 <div id="reportContent" class="divide-y divide-slate-50 flex-1 overflow-y-auto">
                     <div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full flex items-center justify-center">Adicione blocos no formulário ao lado.</div>
                 </div>
 
+                <!-- Rodapé da Marca -->
                 <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0">
                     <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
                         SPG SEDE • Dados Oficiais
@@ -230,58 +257,82 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
+        console.log("Aplicação 'Resumo Colheita Parceiros SPG SEDE' carregada com sucesso.");
+
         let harvestData = [];
         let editingIndex = -1;
-        const STORAGE_KEY = 'spg_sede_data';
+        const STORAGE_KEY = 'spg_sede_data'; // Chave para o localStorage
 
+        // INICIALIZAÇÃO
         lucide.createIcons();
         updateDynamicTitle();
-        loadFromStorage();
+        loadFromStorage(); // Carrega dados salvos ao iniciar
 
+        // --- FUNÇÕES DE PERSISTÊNCIA (LOCALSTORAGE) ---
         function saveToStorage() {
             try {
+                // FILTRA: Salva apenas itens do SPG Oásis
                 const spgItems = harvestData.filter(item => item.partner === 'SPG Oásis');
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(spgItems));
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Erro ao salvar no localStorage", e);
+            }
         }
 
         function loadFromStorage() {
             try {
                 const storedData = localStorage.getItem(STORAGE_KEY);
                 if (storedData) {
-                    harvestData = JSON.parse(storedData);
+                    // Carrega APENAS os itens salvos do SPG Oásis
+                    const savedItems = JSON.parse(storedData);
+                    harvestData = savedItems;
+                    
+                    // Configura o formulário com base no último item, se houver
                     if (harvestData.length > 0) {
                         const lastItem = harvestData[harvestData.length - 1];
-                        const partnerSelect = document.getElementById('partner');
-                        if(partnerSelect) {
-                            partnerSelect.value = lastItem.partner;
-                            toggleInputMode(); 
-                            updateDynamicTitle();
+                        if(lastItem.partner) {
+                             const partnerSelect = document.getElementById('partner');
+                             if(partnerSelect) {
+                                 partnerSelect.value = lastItem.partner;
+                                 toggleInputMode(); 
+                                 updateDynamicTitle();
+                             }
                         }
                     }
+                    
                     renderList();
                     renderReport();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Erro ao carregar do localStorage", e);
+            }
         }
         
+        // --- FUNÇÃO DE FILTRAGEM ---
         function getFilteredData() {
             const partnerSelect = document.getElementById('partner');
             const selectedPartner = partnerSelect ? partnerSelect.value : '';
-            if (!selectedPartner) return [];
+            if (!selectedPartner) return []; // Se nada selecionado, não mostra nada (limpa a tela)
+            
             return harvestData.filter(item => item.partner === selectedPartner);
         }
+
+
+        // --- FUNÇÕES DE DATA E HORA ---
 
         function getWeekNumber(d) {
             d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
             var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
         }
 
         function getGreeting() {
-            const hours = new Date().getHours();
+            const now = new Date();
+            const hours = now.getHours();
             if (hours >= 12 && hours < 18) return 'Boa tarde';
             if (hours >= 18) return 'Boa noite';
             return 'Bom dia';
@@ -289,32 +340,44 @@
 
         function updateDynamicTitle() {
             const now = new Date();
+            const hours = now.getHours();
             let greeting = getGreeting();
             const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
             const weekDay = days[now.getDay()];
-            const timeString = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            const weekNumber = getWeekNumber(now);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const timeString = `${String(hours).padStart(2, '0')}:${minutes}${ampm}`; 
 
             const partnerInput = document.getElementById('partner');
-            const currentPartner = partnerInput?.value || '';
+            const currentPartner = (partnerInput && partnerInput.value) ? partnerInput.value : '';
             const titleElement = document.getElementById('reportTitle');
             
             if (currentPartner === 'SPG Oásis') {
                 titleElement.innerHTML = `${greeting}, Pessoal!<br>Resumo da Produção de ${weekDay}`;
             } else {
-                titleElement.innerHTML = `${greeting}, ${currentPartner || 'Pessoal'}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
+                const displayPartner = currentPartner || 'Pessoal';
+                titleElement.innerHTML = `${greeting}, ${displayPartner}!<br>Resumo da Pesagem (kg) de ${weekDay}`;
             }
 
-            document.getElementById('headerDateTime').innerText = `Data: ${now.toLocaleDateString('pt-BR')} - ${timeString} - Semana ${getWeekNumber(now)}`;
+            const dateElement = document.getElementById('headerDateTime');
+            dateElement.innerText = `Data: ${day}/${month}/${year} - ${timeString} - Semana ${weekNumber}`;
         }
 
+        // --- LOGICA DE FORMULARIO DINAMICO (SPG OASIS) ---
         function toggleInputMode() {
             const partner = document.getElementById('partner').value;
+            
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
             const netWeightWrapper = document.getElementById('netWeightWrapper'); 
             const btnZap = document.getElementById('btnZap'); 
             
+            // Inputs específicos para validação
             const prodDaysInput = document.getElementById('productionDays');
             const plantedInput = document.getElementById('plantedUnits');
             const accumInput = document.getElementById('accumulatedUnits');
@@ -323,203 +386,416 @@
             const labelUnitsPerBox = document.getElementById('labelUnitsPerBox');
 
             if (partner === 'SPG Oásis') {
+                // EXIBIR CAMPOS EXTRAS
                 spgFields.classList.remove('hidden');
+                
+                // OCULTAR PESO LÍQUIDO
                 netWeightWrapper.classList.add('hidden');
+
+                // OCULTAR BOTÃO ZAP
                 if (btnZap) btnZap.style.display = 'none';
 
+                // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
                 totalUnitsInput.removeAttribute('readonly');
-                totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
-                totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800');
+                totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800'); 
+                totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800'); 
                 totalUnitsInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
+                totalUnitsInput.placeholder = "Ex: 5000";
+                
+                labelTotalUnits.classList.remove('text-emerald-600');
+                labelTotalUnits.classList.add('text-slate-500');
                 labelTotalUnits.innerText = "Total Unidades (Manual)";
 
                 unitsPerBoxInput.setAttribute('readonly', true);
-                unitsPerBoxInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
                 unitsPerBoxInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                unitsPerBoxInput.classList.remove('bg-white', 'border-slate-300');
                 unitsPerBoxInput.removeAttribute('oninput');
+                unitsPerBoxInput.placeholder = "Calc. Auto";
+
+                // Label Média (ALTERADO: Removido "(Auto)" para alinhar)
+                labelUnitsPerBox.classList.add('text-emerald-600');
+                labelUnitsPerBox.classList.remove('text-slate-500');
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa (Auto)";
                 
-                totalUnitsInput.required = prodDaysInput.required = plantedInput.required = accumInput.required = true;
+                // Configurar REQUIRED (Validação Nativa)
+                totalUnitsInput.required = true;
+                unitsPerBoxInput.required = false;
+                prodDaysInput.required = true;
+                plantedInput.required = true;
+                accumInput.required = true;
+
             } else {
+                // OCULTAR CAMPOS EXTRAS
                 spgFields.classList.add('hidden');
+
+                // EXIBIR PESO LIQUIDO
                 netWeightWrapper.classList.remove('hidden');
+
+                // EXIBIR BOTÃO ZAP
                 if (btnZap) btnZap.style.display = 'flex';
 
+                // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
                 totalUnitsInput.setAttribute('readonly', true);
-                totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
                 totalUnitsInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
                 totalUnitsInput.removeAttribute('oninput');
+                totalUnitsInput.placeholder = "Calc. Auto";
+
+                labelTotalUnits.classList.add('text-emerald-600');
+                labelTotalUnits.classList.remove('text-slate-500');
                 labelTotalUnits.innerText = "Total Unidades - Auto";
 
                 unitsPerBoxInput.removeAttribute('readonly');
                 unitsPerBoxInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
-                unitsPerBoxInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800');
+                unitsPerBoxInput.classList.add('bg-white', 'border-slate-300');
                 unitsPerBoxInput.setAttribute('oninput', 'formatNumberInput(this); calculateValues()');
+                unitsPerBoxInput.placeholder = "Ex: 18";
+
+                labelUnitsPerBox.classList.remove('text-emerald-600');
+                labelUnitsPerBox.classList.add('text-slate-500');
                 labelUnitsPerBox.innerText = "Média Unid. p/ Caixa";
                 
-                totalUnitsInput.required = prodDaysInput.required = plantedInput.required = accumInput.required = false;
+                // Configurar REQUIRED (Validação Nativa)
+                totalUnitsInput.required = false;
+                unitsPerBoxInput.required = true;
+                prodDaysInput.required = false;
+                plantedInput.required = false;
+                accumInput.required = false;
             }
+            
+            // Recalcula para garantir consistência
             calculateValues();
         }
 
+        // --- FUNÇÕES DE CÁLCULO ---
+
         function calculateValues() {
             const partner = document.getElementById('partner').value; 
+            
             const boxes = parsePTBRNumber(document.getElementById('boxes').value);
+            // Tara removida dos cálculos
             const grossWeight = parsePTBRNumber(document.getElementById('grossWeight').value);
+            
             const netWeightInput = document.getElementById('harvestWeight');
             const totalUnitsInput = document.getElementById('totalUnits');
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const avgInput = document.getElementById('averageWeight');
 
-            let netWeight = grossWeight > 0 ? grossWeight : 0;
-            netWeightInput.value = netWeight ? netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 }) : "";
+            // 1. Calcular Peso Líquido (AGORA É IGUAL AO BRUTO)
+            let netWeight = 0;
+            if (grossWeight > 0) {
+                // Se não há tara para descontar, Líquido = Bruto
+                netWeight = grossWeight; 
+                
+                // Exibir com decimais se houver (não usar Math.round)
+                netWeightInput.value = netWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+            } else {
+                netWeightInput.value = "";
+            }
 
-            let totalUnits = 0, unitsPerBox = 0;
+            // 2. Lógica de Unidades (Diferente por Parceiro)
+            let totalUnits = 0;
+            let unitsPerBox = 0;
+
             if (partner === 'SPG Oásis') {
+                // MODO: Total Manual -> Calcula Média
                 totalUnits = parsePTBRNumber(totalUnitsInput.value); 
+                
                 if (boxes > 0 && totalUnits > 0) {
                     unitsPerBox = totalUnits / boxes;
                     unitsPerBoxInput.value = unitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
-                } else unitsPerBoxInput.value = "";
+                } else {
+                    unitsPerBoxInput.value = "";
+                }
             } else {
+                // MODO PADRÃO: Média Manual -> Calcula Total
                 unitsPerBox = parsePTBRNumber(unitsPerBoxInput.value); 
+                
                 if (boxes > 0 && unitsPerBox > 0) {
                     totalUnits = boxes * unitsPerBox;
-                    totalUnitsInput.value = Math.round(totalUnits).toLocaleString('pt-BR');
-                } else totalUnitsInput.value = "";
+                    totalUnitsInput.value = Math.round(totalUnits);
+                    formatNumberInput(totalUnitsInput);
+                } else {
+                    totalUnitsInput.value = "";
+                }
             }
 
+            // 3. Calcular Peso Médio Unitário (Visual: 0,xxx)
             if (totalUnits > 0 && netWeight > 0) {
-                avgInput.value = (netWeight / totalUnits).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-            } else avgInput.value = "";
+                const avgKg = netWeight / totalUnits;
+                avgInput.value = avgKg.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            } else {
+                avgInput.value = "";
+            }
         }
 
+        // Permite dígitos e vírgula para campos decimais (ex: Tara)
         function formatDecimalInput(input) {
-            let value = input.value.replace(/[^0-9,]/g, '');
+            let value = input.value;
+            value = value.replace(/[^0-9,]/g, '');
             const parts = value.split(',');
-            if (parts.length > 2) value = parts[0] + ',' + parts.slice(1).join('');
+            if (parts.length > 2) {
+                value = parts[0] + ',' + parts.slice(1).join('');
+            }
             input.value = value;
         }
 
+        // Função para inteiros/milhares
         function formatNumberInput(input) {
             let value = input.value.replace(/\D/g, '');
-            input.value = value ? value.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "";
+            if (value) input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            else input.value = "";
         }
 
         function parsePTBRNumber(val) {
             if (!val) return 0;
-            return parseFloat(val.toString().replace(/\./g, '').replace(',', '.')) || 0;
+            const cleanStr = val.toString().replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleanStr) || 0;
         }
+
+        // --- FUNÇÕES DE OPERAÇÃO ---
 
         function updateCommercialInput() {
             const variety = document.getElementById('variety').value;
             const wrapper = document.getElementById('commercialVarietyWrapper');
-            let options = variety === 'Brócolis' ? ['BRO 68 Syngenta', 'Master TSV', 'Sakata Jiraya F1', 'PHAR LAP'] :
-                         variety === 'Couve-Flor' ? ['Vereda', 'Copacabana', 'Tirsuli', 'SF-1758 F1', 'Champagne Snow', 'Serena', 'Supremo'] : [];
             
-            if (options.length > 0) {
-                wrapper.innerHTML = `<label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+            if (variety === 'Brócolis') {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
                     <select id="commercialVariety" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
                         <option value="">Selecione...</option>
-                        ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
-                    </select>`;
+                        <option value="BRO 68 Syngenta">BRO 68 Syngenta</option>
+                        <option value="Master TSV">Master TSV</option>
+                        <option value="Sakata Jiraya F1">Sakata Jiraya F1</option>
+                        <option value="PHAR LAP">PHAR LAP</option>
+                    </select>
+                `;
+            } else if (variety === 'Couve-Flor') {
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <select id="commercialVariety" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white">
+                        <option value="">Selecione...</option>
+                        <option value="Vereda">Vereda</option>
+                        <option value="Copacabana">Copacabana</option>
+                        <option value="Tirsuli">Tirsuli</option>
+                        <option value="SF-1758 F1">SF-1758 F1</option>
+                        <option value="Champagne Snow">Champagne Snow</option>
+                        <option value="Serena">Serena</option>
+                        <option value="Supremo">Supremo</option>
+                    </select>
+                `;
             } else {
-                wrapper.innerHTML = `<label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
-                    <input type="text" id="commercialVariety" required placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">`;
+                wrapper.innerHTML = `
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Var. Comercial</label>
+                    <input type="text" id="commercialVariety" required placeholder="Ex: Avenger" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                `;
             }
         }
 
         function clearBlockForm() {
-            ['talhao','boxes','grossWeight','unitsPerBox','productionDays','accumulatedUnits','plantedUnits','totalUnits','averageWeight','harvestWeight'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = '';
-            });
-            document.getElementById('harvestStatus').value = 'Em andamento';
-            document.getElementById('variety').selectedIndex = 0;
-            updateCommercialInput(); updateDynamicTitle(); toggleInputMode();
+            document.getElementById('talhao').value = '';
+            document.getElementById('boxes').value = '';
+            // REMOVIDO: Limpeza de campos de tara
+            document.getElementById('grossWeight').value = ''; 
+            document.getElementById('unitsPerBox').value = '';
+            document.getElementById('productionDays').value = ''; 
+            document.getElementById('accumulatedUnits').value = ''; 
+            document.getElementById('harvestStatus').value = 'Em Andamento';
+            
+            document.getElementById('totalUnits').value = '';
+            document.getElementById('averageWeight').value = ''; 
+            document.getElementById('harvestWeight').value = ''; 
+            
+            const varietySelect = document.getElementById('variety');
+            varietySelect.selectedIndex = 0;
+            updateCommercialInput(); 
+            updateDynamicTitle(); 
+            toggleInputMode(); // Reset to current partner mode
+
             editingIndex = -1;
             const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+
             submitBtn.innerHTML = '<i data-lucide="plus-circle" class="w-4 h-4"></i> <span>Adicionar ao Relatório</span>';
-            submitBtn.classList.remove('bg-blue-600');
-            submitBtn.classList.add('bg-slate-800');
-            document.getElementById('formTitle').innerHTML = '<i data-lucide="file-plus" class="text-emerald-600"></i> Adicionar Bloco';
+            submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            submitBtn.classList.add('bg-slate-800', 'hover:bg-slate-900');
+            
+            formTitle.innerHTML = '<i data-lucide="file-plus" class="text-emerald-600"></i> Adicionar Bloco';
+            formContainer.classList.remove('border-blue-300', 'ring-2', 'ring-blue-100');
+            
             lucide.createIcons();
         }
 
         function editItem(index) {
             const item = harvestData[index];
             editingIndex = index; 
+
             document.getElementById('partner').value = item.partner;
             toggleInputMode(); 
+
             document.getElementById('talhao').value = item.talhao;
             document.getElementById('variety').value = item.variety;
             updateCommercialInput(); 
             document.getElementById('commercialVariety').value = item.commercialVariety;
+            
             document.getElementById('boxes').value = item.boxes;
             document.getElementById('grossWeight').value = item.grossWeight || '';
             document.getElementById('unitsPerBox').value = item.unitsPerBox || '';
             document.getElementById('totalUnits').value = item.totalUnits || ''; 
+            
             document.getElementById('productionDays').value = item.productionDays || '';
             document.getElementById('plantedUnits').value = item.plantedUnits || '';
             document.getElementById('accumulatedUnits').value = item.accumulatedUnits || '';
-            document.getElementById('harvestStatus').value = item.harvestStatus || 'Em andamento';
-            calculateValues(); updateDynamicTitle(); 
+            
+            // LOAD STATUS
+            document.getElementById('harvestStatus').value = item.status || 'Em Andamento';
+            
+            calculateValues(); 
+            updateDynamicTitle(); 
+            
             const submitBtn = document.getElementById('submitBtn');
+            const formTitle = document.getElementById('formTitle');
+            const formContainer = document.getElementById('formContainer');
+
             submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> <span>Salvar Alterações</span>';
-            submitBtn.classList.remove('bg-slate-800');
-            submitBtn.classList.add('bg-blue-600');
-            document.getElementById('formTitle').innerHTML = '<i data-lucide="pencil" class="text-blue-600"></i> Editando Bloco';
-            document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            renderList(); lucide.createIcons();
+            submitBtn.classList.remove('bg-slate-800', 'hover:bg-slate-900');
+            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+
+            formTitle.innerHTML = '<i data-lucide="pencil" class="text-blue-600"></i> Editando Bloco';
+            formContainer.classList.add('border-blue-300', 'ring-2', 'ring-blue-100');
+
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            renderList();
+            lucide.createIcons();
         }
 
         function addItem(e) {
             e.preventDefault();
+
+            // Valores Calculados ou Diretos
+            const netWeightRaw = document.getElementById('harvestWeight').value; 
+            const totalUnitsRaw = document.getElementById('totalUnits').value;
+            const grossWeightRaw = document.getElementById('grossWeight').value;
+            const unitsPerBoxRaw = document.getElementById('unitsPerBox').value;
+
             const newItem = {
                 partner: document.getElementById('partner').value,
                 talhao: document.getElementById('talhao').value,
                 variety: document.getElementById('variety').value,
                 commercialVariety: document.getElementById('commercialVariety').value,
                 boxes: document.getElementById('boxes').value,
-                grossWeight: document.getElementById('grossWeight').value,
-                unitsPerBox: document.getElementById('unitsPerBox').value,
-                harvestWeight: document.getElementById('harvestWeight').value,
-                totalUnits: document.getElementById('totalUnits').value,
+                
+                grossWeight: grossWeightRaw,
+                unitsPerBox: unitsPerBoxRaw,
+                
+                harvestWeight: netWeightRaw, 
+                totalUnits: totalUnitsRaw,   
                 averageWeight: document.getElementById('averageWeight').value,
+
+                // Novos Campos
                 productionDays: document.getElementById('productionDays').value,
                 plantedUnits: document.getElementById('plantedUnits').value,
                 accumulatedUnits: document.getElementById('accumulatedUnits').value,
-                harvestStatus: document.getElementById('harvestStatus').value
+                status: document.getElementById('harvestStatus').value // SAVE STATUS
             };
-            if (editingIndex >= 0) harvestData[editingIndex] = newItem;
-            else harvestData.push(newItem);
-            saveToStorage(); clearBlockForm(); renderReport(); renderList();
+
+            if (editingIndex >= 0) {
+                harvestData[editingIndex] = newItem;
+                editingIndex = -1; // Reset editing index
+            } else {
+                harvestData.push(newItem);
+            }
+            
+            saveToStorage(); 
+            clearBlockForm();
+
+            renderReport();
+            renderList();
         }
 
         function removeItem(index) {
+            if (editingIndex === index) {
+                clearBlockForm();
+                editingIndex = -1;
+            }
+            // else if (editingIndex > index) editingIndex--; // Not strictly needed if we reset editingIndex on clear
+
             harvestData.splice(index, 1);
-            saveToStorage(); renderReport(); renderList();
+            saveToStorage(); // SALVAR APÓS REMOVER
+            renderReport();
+            renderList();
         }
 
         function clearAll() {
-            if(confirm('Tem certeza? Isso apagará todos os dados.')) {
-                harvestData = []; saveToStorage(); clearBlockForm(); renderReport(); renderList();
+            const partnerSelect = document.getElementById('partner');
+            const currentPartner = partnerSelect ? partnerSelect.value : '';
+
+            if(!currentPartner) return;
+
+            if(confirm(`Tem certeza que deseja limpar os dados de ${currentPartner}?`)) {
+                // Remove apenas os itens do parceiro atual da memória
+                harvestData = harvestData.filter(item => item.partner !== currentPartner);
+                saveToStorage(); 
+                clearBlockForm(); 
+                renderReport();
+                renderList();
             }
         }
 
         function renderList() {
             const list = document.getElementById('itemsList');
+            list.innerHTML = '';
+
+            if (harvestData.length === 0) {
+                const emptyLi = document.createElement('li');
+                emptyLi.className = "text-center text-slate-400 italic py-2";
+                emptyLi.innerText = "Nenhum bloco adicionado.";
+                list.appendChild(emptyLi);
+                return;
+            }
+            
+            // FILTRA VISUALMENTE
             const displayData = getFilteredData();
-            list.innerHTML = displayData.length === 0 ? '<li class="text-center text-slate-400 italic py-2">Nenhum bloco encontrado.</li>' : '';
-            displayData.forEach(item => {
+
+            if (displayData.length === 0 && harvestData.length > 0) {
+                 // Tem dados, mas não desse parceiro
+                 const emptyLi = document.createElement('li');
+                 emptyLi.className = "text-center text-slate-400 italic py-2";
+                 emptyLi.innerText = "Nenhum bloco para este parceiro.";
+                 list.appendChild(emptyLi);
+                 return;
+            } else if (displayData.length === 0) {
+                 const emptyLi = document.createElement('li');
+                 emptyLi.className = "text-center text-slate-400 italic py-2";
+                 emptyLi.innerText = "Nenhum bloco adicionado.";
+                 list.appendChild(emptyLi);
+                 return;
+            }
+
+            displayData.forEach((item) => {
+                // IMPORTANTE: Encontrar o índice real no array original harvestData
                 const originalIndex = harvestData.indexOf(item);
+
                 const li = document.createElement('li');
-                li.className = `flex justify-between items-center p-2 rounded border ${originalIndex === editingIndex ? 'border-blue-400 bg-blue-50' : 'border-slate-100 bg-slate-50'} transition-all`;
-                li.innerHTML = `<span><span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span><b>#${item.talhao}</b></span>
+                const activeClass = (originalIndex === editingIndex) ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-200' : 'border-slate-100 bg-slate-50';
+
+                li.className = `flex justify-between items-center p-2 rounded border ${activeClass} transition-all`;
+                li.innerHTML = `
+                    <span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">${item.partner}</span>
+                        <b>#${item.talhao}</b> - ${item.variety} 
+                        ${originalIndex === editingIndex ? '<span class="text-[10px] text-blue-600 font-bold ml-2">(Editando)</span>' : ''}
+                    </span>
                     <div class="flex items-center">
-                        <button onclick="editItem(${originalIndex})" class="text-blue-500 p-1.5 rounded-md mr-1"><i data-lucide="pencil" width="14"></i></button>
-                        <button onclick="removeItem(${originalIndex})" class="text-red-500 p-1.5 rounded-md"><i data-lucide="trash-2" width="14"></i></button>
-                    </div>`;
+                        <button onclick="editItem(${originalIndex})" class="text-blue-500 hover:bg-blue-100 p-1.5 rounded-md mr-1 transition-colors" title="Editar">
+                            <i data-lucide="pencil" width="14"></i>
+                        </button>
+                        <button onclick="removeItem(${originalIndex})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="Excluir">
+                            <i data-lucide="trash-2" width="14"></i>
+                        </button>
+                    </div>
+                `;
                 list.appendChild(li);
             });
             lucide.createIcons();
@@ -528,153 +804,532 @@
         function renderReport() {
             const container = document.getElementById('reportContent');
             const footerContainer = document.getElementById('operationalFooter');
-            const displayData = getFilteredData();
+
             container.innerHTML = '';
-            let sumBoxes = 0, sumWeight = 0, sumTotalUnits = 0;
+            let sumBoxes = 0;
+            let sumWeight = 0;
+            let sumTotalUnits = 0;
+            
+            const displayData = getFilteredData();
 
             if (displayData.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs italic h-full flex items-center justify-center">Adicione dados no formulário ao lado.</div>';
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic leading-relaxed h-full min-h-[300px] flex flex-col items-center justify-center">
+                    <i data-lucide="clipboard-list" class="mb-2 w-8 h-8 opacity-20"></i>
+                    <span>Adicione dados para visualizar o relatório.</span>
+                </div>`;
             } else {
-                displayData.forEach(item => { 
-                    const boxesVal = parsePTBRNumber(item.boxes), weightVal = parsePTBRNumber(item.harvestWeight), totalUnitsVal = parsePTBRNumber(item.totalUnits);
-                    sumBoxes += boxesVal; sumWeight += weightVal; sumTotalUnits += totalUnitsVal;
-
-                    const status = item.harvestStatus || 'Em andamento';
-                    const statusClass = status === 'Finalizado' ? 'text-red-600' : 'text-blue-600';
+                displayData.forEach((item, index) => { 
+                    const displayVariety = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
                     
-                    let spgHighlight = '';
-                    if (item.partner === 'SPG Oásis') {
-                        const plantedVal = parsePTBRNumber(item.plantedUnits);
-                        const accumVal = parsePTBRNumber(item.accumulatedUnits);
-                        const percentage = plantedVal > 0 ? Math.round((accumVal / plantedVal) * 100) : 0;
-                        const remaining = Math.max(0, 100 - percentage);
-                        const progressCol = percentage >= 90 ? 'bg-emerald-500' : percentage >= 70 ? 'bg-blue-500' : 'bg-yellow-500';
+                    const boxesVal = parsePTBRNumber(item.boxes);
+                    const weightVal = parsePTBRNumber(item.harvestWeight); // Peso Líquido
+                    const totalUnitsVal = parsePTBRNumber(item.totalUnits);
+                    const avgValG = parsePTBRNumber(item.averageWeight); // Peso Médio agora é 0.234
 
-                        spgHighlight = `
+                    sumBoxes += boxesVal;
+                    sumWeight += weightVal;
+                    sumTotalUnits += totalUnitsVal;
+
+                    let avgKgBoxStr = "-";
+                    if (boxesVal > 0) {
+                        const avgKgBox = weightVal / boxesVal;
+                        avgKgBoxStr = avgKgBox.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                    }
+
+                    let avgWeightFormatted = "-";
+                    if (avgValG > 0) {
+                        avgWeightFormatted = avgValG.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                    }
+
+                    const showPartnerTag = (item.partner !== 'SPG Oásis') ; // CHANGED LOGIC: Never show tag for SPG Oásis
+
+                    // --- INÍCIO: BLOCO DE DESTAQUE PARA SPG OÁSIS ---
+                    let spgHighlightBlock = '';
+                    if (item.partner === 'SPG Oásis') {
+                        const days = item.productionDays || '-';
+                        const accum = item.accumulatedUnits || '0';
+                        const planted = item.plantedUnits || '0';
+                        
+                        // Cálculo da Porcentagem
+                        let percentage = 0;
+                        const accumVal = parsePTBRNumber(accum);
+                        const plantedVal = parsePTBRNumber(planted);
+                        if (plantedVal > 0) {
+                            percentage = Math.round((accumVal / plantedVal) * 100);
+                        }
+                        const remaining = Math.max(0, 100 - percentage);
+
+                        // Cores da Barra
+                        let progressColor = 'bg-yellow-500';
+                        let textColor = 'text-slate-600';
+                        if (percentage >= 90) { progressColor = 'bg-emerald-500'; textColor = 'text-emerald-600'; }
+                        else if (percentage >= 70) { progressColor = 'bg-blue-500'; }
+
+                        // Layout inspirado na referência visual com Barra de Progresso
+                        spgHighlightBlock = `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
                              <div class="flex justify-between items-end mb-1">
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">COLHIDO</div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-medium text-slate-500">
-                                        Total Acumulado: <span class="font-bold text-slate-700">${item.accumulatedUnits} un.</span>
+                                    <span class="text-xs font-medium text-slate-500">
+                                        Total Acumulado: <span class="font-bold text-slate-700">${accum} un.</span>
                                     </span>
-                                    <span class="text-slate-300 text-[10px]">|</span>
-                                    <span class="text-[10px] font-bold text-slate-400">
+                                    <span class="text-slate-300 text-xs">|</span>
+                                    <span class="text-xs font-bold text-slate-400">
                                         Falta: <span class="text-red-400">${remaining}%</span>
                                     </span>
                                 </div>
                             </div>
+                             
+                            <!-- Barra de Progresso -->
                             <div class="flex items-center gap-3 mb-2">
-                                <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${progressCol}" style="width: ${percentage}%"></div></div>
-                                <span class="text-xs font-extrabold text-slate-600">${percentage}%</span>
+                                <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full ${progressColor}" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="text-xs font-extrabold ${textColor}">${percentage}%</span>
                             </div>
+
+                             <!-- Divisor sutil -->
                              <div class="h-px bg-slate-200 my-2"></div>
+
                              <div class="text-[11px] font-bold text-blue-600 flex items-center justify-between">
-                                <span>Dias de Produção: ${item.productionDays || '-'} dias</span>
-                                <span class="text-orange-600 font-extrabold">Qtd. Plantada: ${item.plantedUnits || '-'}</span>
+                                <span>Dias de Produção: ${days} dias</span>
+                                <!-- Mantendo destaque laranja aqui conforme pedido anterior -->
+                                <span class="text-orange-600 font-extrabold">Qtd. Plantada: ${planted}</span>
                             </div>
                         </div>`;
                     }
+                    // --- FIM: BLOCO DE DESTAQUE ---
 
-                    container.innerHTML += `
-                    <div class="p-5 group">
-                        <div class="flex flex-col mb-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-base font-bold text-slate-800">Bloco ${item.talhao}</span>
-                                    ${item.partner === 'SPG Oásis' ? `<span class="text-[10px] font-bold uppercase ${statusClass}">${status}</span>` : ''}
-                                </div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">${item.variety} - ${item.commercialVariety}</span>
-                            </div>
-                        </div>
-                        ${spgHighlight}
+                    // --- BADGE DE STATUS ---
+                    let statusBadge = '';
+                    if (item.partner === 'SPG Oásis') {
+                        if (item.status === 'Finalizado') {
+                            // AJUSTE: Alterado de font-extrabold para font-medium (remove negrito pesado)
+                            statusBadge = `<span class="ml-2 text-[10px] font-medium text-red-600 uppercase tracking-wide">Finalizado</span>`;
+                        } else {
+                            // AJUSTE: Alterado de font-extrabold para font-medium
+                            statusBadge = `<span class="ml-2 text-[10px] font-medium text-blue-600 uppercase tracking-wide">Em Andamento</span>`;
+                        }
+                    }
+
+                    const statsContent = `
                         <div class="grid grid-cols-3 gap-2"> 
+                            <!-- Linha 1 (AGORA EM CIMA): Totais Finais -->
                             ${createStatItem('weight', item.harvestWeight, 'PESO (KG)', 'orange')}
                             ${createStatItem('hash', item.totalUnits, 'UNIDADES', 'orange')}
-                            ${createStatItem('scale', item.averageWeight, 'MÉDIO (G/UNID.)', 'orange')}
-                            ${createStatItem('box', item.boxes, 'Caixas')}
-                            ${createStatItem('package-check', boxesVal > 0 ? (weightVal/boxesVal).toLocaleString('pt-BR', {maximumFractionDigits:1}) : '-', 'KG POR CAIXA')}
-                            ${createStatItem('layers', item.unitsPerBox, 'UNID. POR CX.')}
+                            ${createStatItem('scale', avgWeightFormatted, 'PESO MÉDIO (G/UNID.)', 'orange')}
+
+                            <!-- Linha 2 (AGORA EM BAIXO): Dados da Embalagem -->
+                            ${createStatItem('box', item.boxes, 'CAIXAS')}
+                            ${createStatItem('package-check', avgKgBoxStr, 'MÉDIA KG POR CAIXA')}
+                            ${createStatItem('layers', item.unitsPerBox, 'MÉDIA UNIDADES POR CAIXA')}
                         </div>
-                    </div>`;
+                    `;
+
+                    const html = `
+                    <div class="p-5 hover:bg-slate-50 transition-colors group">
+                        
+                        <div class="flex flex-col mb-3">
+                            ${showPartnerTag ? `<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>` : ''}
+                            <!-- AJUSTE: Título com Tag limpa (sem fundo cinza) para melhor nitidez -->
+                            <div class="flex items-center justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base font-bold text-slate-800 leading-normal">
+                                        Bloco ${item.talhao}
+                                    </span>
+                                    <!-- BADGE DE STATUS -->
+                                    ${statusBadge}
+                                </div>
+                                <!-- Tag limpa: removido bg-slate-100 e border -->
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide text-right">
+                                    ${displayVariety}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Inserção do Bloco de Destaque SPG Oásis (se existir) -->
+                        ${spgHighlightBlock}
+
+                        <!-- Grid de Estatísticas -->
+                        ${statsContent}
+
+                    </div>
+                    `;
+                    container.innerHTML += html;
                 });
             }
+            // Re-render icons for new content
+            lucide.createIcons();
 
-            const finalAvg = sumTotalUnits > 0 ? (sumWeight / sumTotalUnits).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "0,000";
+            // RODAPÉ OPERACIONAL (SEM BORDAS)
+            const sumBoxesStr = sumBoxes.toLocaleString('pt-BR');
+            const sumWeightStr = sumWeight.toLocaleString('pt-BR');
+            const sumTotalUnitsStr = sumTotalUnits.toLocaleString('pt-BR');
+            
+            let finalAvgWeight = 0;
+            if (sumTotalUnits > 0) {
+                // sumWeight is in kg. result is kg/unit (0.234)
+                finalAvgWeight = sumWeight / sumTotalUnits;
+            }
+            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
+            const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
             footerContainer.innerHTML = `
+                <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
                 <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
+                    <!-- Decorativo Fundo -->
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100/50 rounded-full -mr-8 -mt-8 pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100/50 rounded-full -ml-6 -mb-6 pointer-events-none"></div>
+
+                    <!-- Linha 1: Total Unidades e Peso Liq. Total (Lado a Lado) -->
                     <div class="text-center border-r border-emerald-200/50">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Unidades</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumTotalUnits.toLocaleString('pt-BR')}</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumTotalUnitsStr}</div>
                     </div>
+
                     <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumWeight.toLocaleString('pt-BR')}</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div> <!-- Removed 'kg' -->
                     </div>
+
+                    <!-- Separador Horizontal -->
                     <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
+
+                    <!-- Linha 2: Total Caixas e Peso Médio (Lado a Lado) -->
                     <div class="text-center border-r border-emerald-200/50">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Caixas</div>
-                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxes.toLocaleString('pt-BR')}</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxesStr}</div>
                     </div>
+
                     <div class="text-center">
-                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G)</div>
-                        <div class="text-lg font-extrabold text-emerald-800">${finalAvg} g</div>
+                        <!-- AJUSTE: Adicionado ponto final em (G/UNID.) -->
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G/UNID.)</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
-                </div>`;
+                </div>
+            `;
+            // Call createIcons again just in case
             lucide.createIcons();
         }
 
+        // Helper (SEM BORDAS)
         function createStatItem(iconName, value, label, theme = 'default') {
-            const colors = theme === 'orange' ? 'text-orange-800 bg-orange-50' : 'text-slate-700 bg-slate-50';
-            const iconCol = theme === 'orange' ? 'text-orange-500' : 'text-slate-400';
-            return `<div class="flex flex-col items-center justify-center p-3 rounded-xl ${colors}">
-                <div class="mb-1 ${iconCol}"><i data-lucide="${iconName}" width="14"></i></div>
-                <span class="text-xs font-bold">${value}</span>
-                <span class="text-[9px] uppercase font-semibold opacity-70 mt-1 text-center leading-tight">${label}</span>
-            </div>`;
+            
+            let textColor = 'text-slate-700';
+            let labelColor = 'text-slate-400';
+            let iconColor = 'text-slate-400';
+            let bgColor = 'bg-slate-50';
+
+            // Configuração dos Temas de Cor
+            if (theme === 'emerald' || theme === true) {
+                textColor = 'text-emerald-800';
+                labelColor = 'text-emerald-600/70';
+                iconColor = 'text-emerald-600';
+                bgColor = 'bg-emerald-50/50';
+            } else if (theme === 'orange') {
+                // TEMA LARANJA CLARINHO
+                textColor = 'text-orange-800';
+                labelColor = 'text-orange-600/70';
+                iconColor = 'text-orange-500';
+                bgColor = 'bg-orange-50';
+            }
+
+            return `
+            <div class="flex flex-col items-center justify-center p-3 rounded-xl ${bgColor}">
+                <div class="mb-1 ${iconColor} icon-fix"><i data-lucide="${iconName}" width="14"></i></div>
+                <span class="text-xs font-bold ${textColor}">${value}</span>
+                <span class="text-[9px] uppercase tracking-wider font-semibold ${labelColor} mt-1 text-center leading-tight">${label}</span>
+            </div>
+            `;
         }
 
+        // --- FUNÇÃO PARA GERAR TEXTO WHATSAPP ---
         function copyToWhatsApp() {
-            const data = getFilteredData();
-            if (data.length === 0) return alert("Adicione dados primeiro.");
+            const displayData = getFilteredData();
+            if (displayData.length === 0) {
+                alert("Adicione blocos primeiro para gerar o texto.");
+                return;
+            }
+
+            const greeting = getGreeting();
             const now = new Date();
-            let text = `${getGreeting()}, ${document.getElementById('partner').value || 'Pessoal'}!\n\n`;
-            text += `Pesagem de ${now.toLocaleDateString('pt-BR')} - Semana ${getWeekNumber(now)}\n\n`;
+            const refDate = now.toLocaleDateString('pt-BR');
+            const weekNumber = getWeekNumber(now);
+            let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+            weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
             
-            data.forEach(item => {
-                text += `\`Bloco ${item.talhao}\` ${item.partner === 'SPG Oásis' ? `${item.harvestStatus}` : ''}\n`;
-                text += `*Peso:* ${item.harvestWeight}kg | *Unid:* ${item.totalUnits}\n`;
-                text += `*Médio:* ${item.averageWeight}g/unid\n\n`;
+            const partnerInput = document.getElementById('partner');
+            let headerName = "Pessoal";
+            
+            if (partnerInput && partnerInput.value) {
+                headerName = partnerInput.value;
+            }
+            // Fallback se não selecionado, mas temos dados (usado na lógica antiga, mas com filtro, partnerInput.value deve existir se displayData > 0 e a gente forçou select)
+            
+            let text = `${greeting}, ${headerName}!\n\n`;
+            text += `Pesagem de ${weekday} ${refDate} - Semana ${weekNumber}\n\n`;
+
+            let totalKg = 0;
+            let totalBoxes = 0;
+            let totalUnits = 0;
+
+            displayData.forEach(item => {
+                const weight = parsePTBRNumber(item.harvestWeight); 
+                const boxes = parsePTBRNumber(item.boxes);
+                const manualUnitsPerBox = parsePTBRNumber(item.unitsPerBox); 
+                const avgWeightG = parsePTBRNumber(item.averageWeight); 
+                const units = parsePTBRNumber(item.totalUnits);
+
+                totalKg += weight;
+                totalBoxes += boxes;
+                totalUnits += units;
+
+                let netKgPerBox = 0;
+                let kgPerUnit = 0; 
+
+                if (boxes > 0) {
+                    netKgPerBox = weight / boxes; 
+                }
+                
+                kgPerUnit = avgWeightG; 
+
+                const weightStr = Math.round(weight).toLocaleString('pt-BR'); 
+                const kgPerBoxStr = netKgPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
+                const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
+                const kgPerUnitStr = kgPerUnit.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); 
+
+                let unitLabel = "g";
+                let unitText = "(G)";
+                
+                if (kgPerUnit >= 1) {
+                    unitLabel = "kg";
+                    unitText = "(KG)";
+                }
+
+                text += `\`Bloco ${item.talhao}\`\n\n`;
+                text += `*Peso (kg):* ${weightStr}\n\n`; 
+                text += `*Peso Médio (g/unid.):* ${kgPerUnitStr}\n\n`; 
+                text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`;
+                text += `*Unidades por Caixa:* ${unitsPerBoxStr}\n\n`; 
+
+                // Adiciona campos extras se for SPG Oásis no WhatsApp também
+                if (item.partner === 'SPG Oásis') {
+                    if (item.productionDays) text += `*Dias de Produção:* ${item.productionDays}\n\n`;
+                    if (item.accumulatedUnits) text += `*Total Unid. Acumulado:* ${item.accumulatedUnits}\n\n`;
+                }
+                
+                text += `\n`;
             });
+
+            let globalAvgWeight = 0;
+            if (totalUnits > 0) {
+                globalAvgWeight = totalKg / totalUnits;
+            }
+            const globalAvgStr = globalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+            text += `\`Total kg: ${Math.round(totalKg).toLocaleString('pt-BR')}\`\n\n`;
+            text += `\`Total Unidades: ${totalUnits.toLocaleString('pt-BR')}\`\n\n`;
+            text += `\`Peso Médio: ${globalAvgStr} g.unid\`\n\n`;
+            text += `\`Total Caixas: ${totalBoxes.toLocaleString('pt-BR')}\``;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
             
-            const area = document.createElement("textarea");
-            area.value = text; document.body.appendChild(area); area.select();
-            document.execCommand('copy'); document.body.removeChild(area);
-            alert("Copiado!");
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    alert("Texto copiado para a área de transferência!");
+                } else {
+                    alert("Não foi possível copiar automaticamente. Tente selecionar e copiar manualmente.");
+                }
+            } catch (err) {
+                console.error("Erro ao copiar:", err);
+                alert("Erro ao copiar o texto.");
+            }
+            document.body.removeChild(textArea);
         }
 
+        // --- FUNÇÃO PARA GERAR IMAGEM HD (NOVA) ---
         async function downloadImage() {
-            const el = document.getElementById('report-card');
-            const btn = document.querySelector('button[onclick="downloadImage()"] span');
-            btn.innerText = "Processando...";
-            const canvas = await html2canvas(el, { scale: 5, useCORS: true, windowWidth: 480 });
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `Resumo_${document.getElementById('partner').value || 'Geral'}.png`;
-            link.click();
-            btn.innerText = "Baixar Imagem";
+            const element = document.getElementById('report-card');
+            const originalText = document.querySelector('button[onclick="downloadImage()"] span').innerText;
+            document.querySelector('button[onclick="downloadImage()"] span').innerText = "Gerando Imagem...";
+
+            try {
+                // AJUSTE: Scale alterado de 5 para 3. 
+                // Scale 5 cria uma imagem gigantesca que trava o navegador com muitos blocos.
+                // Scale 3 ainda é HD (aprox 1350px de largura) e segura para listas longas.
+                const options = {
+                    scale: 5, // Reverted to 5 based on user preference
+                    useCORS: true, 
+                    allowTaint: true,
+                    scrollY: -window.scrollY,
+                    backgroundColor: '#ffffff', 
+                    windowWidth: 480, 
+                    onclone: (doc) => {
+                        const el = doc.getElementById('report-card');
+                        const content = doc.getElementById('reportContent');
+                        
+                        if (el) { 
+                            el.style.width = '450px'; 
+                            el.style.maxWidth = '450px';
+                            el.style.margin = '0'; 
+                            el.style.boxShadow = 'none';
+                            el.style.borderRadius = '0';
+                            el.style.border = 'none';
+                        }
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
+                        }
+                    }
+                };
+
+                const canvas = await html2canvas(element, options);
+                
+                // Gera Link de Download
+                const imgData = canvas.toDataURL('image/png');
+                
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const weekNum = getWeekNumber(now);
+                let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+                const partnerInput = document.getElementById('partner');
+                let partnerName = "Geral"; 
+                if (partnerInput && partnerInput.value) {
+                    partnerName = partnerInput.value;
+                } else if (harvestData.length > 0 && harvestData[0].partner) {
+                    partnerName = harvestData[0].partner;
+                }
+
+                // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
+                let filePrefix = "Resumo da Pesagem (kg)";
+                if (partnerName === "SPG Oásis") {
+                    filePrefix = "Resumo da Produção";
+                }
+
+                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.png`;
+
+                // Cria elemento temporário para download
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (err) {
+                console.error("Erro ao gerar imagem:", err);
+                alert("Erro ao gerar imagem: " + err.message);
+            } finally {
+                document.querySelector('button[onclick="downloadImage()"] span').innerText = originalText;
+            }
         }
 
+
+        // --- FUNÇÃO DE DOWNLOAD PDF (Manual - Estilo Mobile Simulado) ---
         async function downloadPDF() {
-            const el = document.getElementById('report-card');
-            const btn = document.querySelector('button[onclick="downloadPDF()"] span');
-            btn.innerText = "Processando...";
-            const canvas = await html2canvas(el, { scale: 3, useCORS: true, windowWidth: 480 });
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'px', [450, (canvas.height * 450) / canvas.width]);
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 450, (canvas.height * 450) / canvas.width);
-            pdf.save(`Relatorio_${document.getElementById('partner').value || 'Geral'}.pdf`);
-            btn.innerText = "Baixar PDF";
+            const element = document.getElementById('report-card');
+            const originalText = document.querySelector('button[onclick="downloadPDF()"] span').innerText;
+            document.querySelector('button[onclick="downloadPDF()"] span').innerText = "Gerando PDF...";
+
+            try {
+                // 1. Configurar opções para captura de ALTA FIDELIDADE
+                const options = {
+                    scale: 3, // 3x a resolução original (Retina Quality)
+                    useCORS: true,
+                    allowTaint: true,
+                    scrollY: -window.scrollY,
+                    backgroundColor: '#ffffff', // Garante fundo branco
+                    windowWidth: 480, // Força renderização como mobile
+                    onclone: (doc) => {
+                        const el = doc.getElementById('report-card');
+                        const content = doc.getElementById('reportContent');
+                        
+                        // Força estilos para renderização perfeita
+                        if (el) { 
+                            el.style.width = '450px'; // Largura fixa ideal para mobile
+                            el.style.maxWidth = '450px';
+                            el.style.margin = '0'; 
+                            el.style.boxShadow = 'none';
+                            el.style.borderRadius = '0';
+                            el.style.border = 'none';
+                        }
+                        if (content) { 
+                            content.style.height = 'auto'; 
+                            content.style.overflow = 'visible'; 
+                            content.style.maxHeight = 'none';
+                        }
+                    }
+                };
+
+                const canvas = await html2canvas(element, options);
+                
+                // 2. Dimensões do PDF
+                // O truque da nitidez: O PDF tem o tamanho VISUAL do elemento (ex: 450px)
+                // Mas a imagem inserida nele tem 3x essa resolução (do scale: 3)
+                const imgWidth = 450; // Largura fixa em "pontos" do PDF
+                const pageHeight = (canvas.height * imgWidth) / canvas.width; // Altura proporcional
+
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'px',
+                    format: [imgWidth, pageHeight], // Tamanho da folha igual ao tamanho visual
+                    hotfixes: ['px_scaling'] // CRÍTICO: Corrige escala em diferentes dispositivos
+                });
+
+                // 3. Inserir imagem de alta resolução compactada no tamanho visual
+                const imgData = canvas.toDataURL('image/png'); // PNG para texto nítido (sem artefatos de JPG)
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
+
+                // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const weekNum = getWeekNumber(now);
+                
+                // Dia da semana (Primeira letra maiúscula)
+                let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+                // Nome do Parceiro
+                const partnerInput = document.getElementById('partner');
+                let partnerName = "Geral"; // Padrão se não houver parceiro
+                
+                if (partnerInput && partnerInput.value) {
+                    partnerName = partnerInput.value;
+                } else if (harvestData.length > 0 && harvestData[0].partner) {
+                    partnerName = harvestData[0].partner;
+                }
+
+                // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
+                let filePrefix = "Resumo da Pesagem (kg)";
+                if (partnerName === "SPG Oásis") {
+                    filePrefix = "Resumo da Produção";
+                }
+
+                // Nome final do arquivo
+                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
+
+                pdf.save(fileName);
+
+            } catch (err) {
+                console.error("Erro ao gerar PDF:", err);
+                alert("Erro ao gerar PDF: " + err.message);
+            } finally {
+                document.querySelector('button[onclick="downloadPDF()"] span').innerText = originalText;
+            }
         }
     </script>
 </body>
