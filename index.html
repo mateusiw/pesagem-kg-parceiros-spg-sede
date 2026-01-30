@@ -327,7 +327,6 @@
                 netWeightWrapper.classList.add('hidden');
                 if (btnZap) btnZap.style.display = 'none';
 
-                // Modo Oásis: Unidades Manual (Branco), Média p/ Caixa Automática (Verde)
                 totalUnitsInput.removeAttribute('readonly');
                 totalUnitsInput.classList.remove('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
                 totalUnitsInput.classList.add('bg-white', 'border-slate-300', 'text-slate-800');
@@ -346,7 +345,6 @@
                 netWeightWrapper.classList.remove('hidden');
                 if (btnZap) btnZap.style.display = 'flex';
 
-                // Modo Padrão: Unidades Automática (Verde), Média p/ Caixa Manual (Branco)
                 totalUnitsInput.setAttribute('readonly', true);
                 totalUnitsInput.classList.remove('bg-white', 'border-slate-300', 'text-slate-800');
                 totalUnitsInput.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
@@ -549,13 +547,22 @@
                         const plantedVal = parsePTBRNumber(item.plantedUnits);
                         const accumVal = parsePTBRNumber(item.accumulatedUnits);
                         const percentage = plantedVal > 0 ? Math.round((accumVal / plantedVal) * 100) : 0;
+                        const remaining = Math.max(0, 100 - percentage);
                         const progressCol = percentage >= 90 ? 'bg-emerald-500' : percentage >= 70 ? 'bg-blue-500' : 'bg-yellow-500';
 
                         spgHighlight = `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
                              <div class="flex justify-between items-end mb-1">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">PROGRESSO COLHEITA</div>
-                                <div class="text-[10px] font-medium text-slate-500">Acumulado: <span class="font-bold text-slate-700">${item.accumulatedUnits} un.</span></div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">COLHIDO</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-medium text-slate-500">
+                                        Total Acumulado: <span class="font-bold text-slate-700">${item.accumulatedUnits} un.</span>
+                                    </span>
+                                    <span class="text-slate-300 text-[10px]">|</span>
+                                    <span class="text-[10px] font-bold text-slate-400">
+                                        Falta: <span class="text-red-400">${remaining}%</span>
+                                    </span>
+                                </div>
                             </div>
                             <div class="flex items-center gap-3 mb-2">
                                 <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${progressCol}" style="width: ${percentage}%"></div></div>
@@ -595,23 +602,23 @@
 
             const finalAvg = sumTotalUnits > 0 ? (sumWeight / sumTotalUnits).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "0,000";
             footerContainer.innerHTML = `
-                <div class="bg-slate-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
-                    <div class="text-center border-r border-slate-200">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Total Unidades</div>
-                        <div class="text-xl font-extrabold text-slate-800">${sumTotalUnits.toLocaleString('pt-BR')}</div>
+                <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
+                    <div class="text-center border-r border-emerald-200/50">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Unidades</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumTotalUnits.toLocaleString('pt-BR')}</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
-                        <div class="text-xl font-extrabold text-slate-800">${sumWeight.toLocaleString('pt-BR')}</div>
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeight.toLocaleString('pt-BR')}</div>
                     </div>
-                    <div class="col-span-2 border-t border-slate-200 w-3/4 mx-auto"></div>
-                    <div class="text-center border-r border-slate-200">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Total Caixas</div>
-                        <div class="text-lg font-extrabold text-slate-800">${sumBoxes.toLocaleString('pt-BR')}</div>
+                    <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
+                    <div class="text-center border-r border-emerald-200/50">
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">Total Caixas</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${sumBoxes.toLocaleString('pt-BR')}</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">MÉDIA GERAL (G)</div>
-                        <div class="text-lg font-extrabold text-slate-800">${finalAvg} g</div>
+                        <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G)</div>
+                        <div class="text-lg font-extrabold text-emerald-800">${finalAvg} g</div>
                     </div>
                 </div>`;
             lucide.createIcons();
