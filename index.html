@@ -320,13 +320,27 @@
             }
         }
         
-        // --- FUNÇÃO DE FILTRAGEM ---
+        // --- FUNÇÃO DE FILTRAGEM E ORDENAÇÃO ---
         function getFilteredData() {
             const partnerSelect = document.getElementById('partner');
             const selectedPartner = partnerSelect ? partnerSelect.value : '';
             if (!selectedPartner) return []; // Se nada selecionado, não mostra nada (limpa a tela)
             
-            return harvestData.filter(item => item.partner === selectedPartner);
+            let filtered = harvestData.filter(item => item.partner === selectedPartner);
+
+            // ORDENAÇÃO INTELIGENTE (Alfanumérica Natural)
+            // Organiza na ordem: 1, 2, 3, 10, A, B, C...
+            filtered.sort((a, b) => {
+                if (selectedPartner === 'SPG Oásis') {
+                    // Ordena pelo número/letra do bloco (talhão)
+                    return String(a.talhao || '').localeCompare(String(b.talhao || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+                } else {
+                    // Ordena pelo nome da cultura para os outros parceiros
+                    return String(a.variety || '').localeCompare(String(b.variety || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+                }
+            });
+
+            return filtered;
         }
 
 
