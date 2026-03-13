@@ -1021,15 +1021,14 @@
                         // Layout inspirado na referência visual com Barra de Progresso
                         spgHighlightBlock = `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
-                             <div class="flex justify-between items-end mb-1">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">COLHIDO</div>
+                             <div class="flex justify-end items-end mb-1">
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs font-medium text-slate-500">
                                         Total Acumulado: <span class="font-bold text-slate-700">${accum} un.</span>
                                     </span>
                                     <span class="text-slate-300 text-xs">|</span>
                                     <span class="text-xs font-bold text-slate-400">
-                                        Falta: <span class="text-red-400">${remaining}%</span>
+                                        Colhido: <span class="${textColor}">${percentage}%</span>
                                     </span>
                                 </div>
                             </div>
@@ -1039,7 +1038,7 @@
                                 <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
                                     <div class="h-full rounded-full ${progressColor}" style="width: ${percentage}%"></div>
                                 </div>
-                                <span class="text-xs font-extrabold ${textColor}">${percentage}%</span>
+                                <span class="text-[11px] font-extrabold text-red-400 uppercase tracking-wide">Falta: ${remaining}%</span>
                             </div>
 
                              <!-- Divisor sutil -->
