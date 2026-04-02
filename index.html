@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1a.0, user-scalable=no">
     <title>Resumo Colheita Parceiros SPG SEDE</title>
     
     <!-- Configurações PWA com Ícone Personalizado (LOGO NOVO TRANSPARENTE) -->
@@ -1599,6 +1599,10 @@
                 const idxStatus = getIdx(['status']);
                 const idxPrev = getIdx(['previsao', 'previsão', 'estimated']);
                 
+                // NOVO: Busca coluna de visibilidade
+                const idxOculto = getIdx(['oculto', 'hidden']);
+                const idxAtivo = getIdx(['ativo', 'active', 'visível', 'visivel']);
+                
                 // Lógica aprimorada: Encontra "Total de Unidades" garantindo que não pegue "Acumulada" ou "Plantada" por engano
                 const idxTotalUnits = headers.findIndex((h, i) => 
                     i !== idxAccum && 
@@ -1621,6 +1625,16 @@
                     const row = lines[i].split(sep).map(col => col.trim().replace(/^"|"$/g, '')); 
                     if (row.length < 2) continue;
 
+                    // VERIFICA STATUS DE OCULTO
+                    let isActive = true;
+                    if (idxOculto !== -1 && row[idxOculto]) {
+                        const val = row[idxOculto].toLowerCase();
+                        if (['sim', 's', 'true', '1', 'x'].includes(val)) isActive = false;
+                    } else if (idxAtivo !== -1 && row[idxAtivo]) {
+                        const val = row[idxAtivo].toLowerCase();
+                        if (['não', 'nao', 'n', 'false', '0'].includes(val)) isActive = false;
+                    }
+
                     const newItem = {
                         partner: 'SPG Oásis',
                         talhao: idxTalhao !== -1 && row[idxTalhao] ? row[idxTalhao] : `Imp-${i}`,
@@ -1637,7 +1651,7 @@
                         accumulatedUnits: idxAccum !== -1 && row[idxAccum] ? row[idxAccum] : '',
                         status: idxStatus !== -1 && row[idxStatus] ? row[idxStatus] : 'Em Andamento',
                         estimatedCompletion: idxPrev !== -1 && row[idxPrev] ? formatToISO(row[idxPrev]) : '',
-                        active: true
+                        active: isActive
                     };
 
                     // Calcula automaticamente a média de unidades por caixa
