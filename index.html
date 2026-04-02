@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1a.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resumo Colheita Parceiros SPG SEDE</title>
     
     <!-- Configurações PWA com Ícone Personalizado (LOGO NOVO TRANSPARENTE) -->
@@ -1611,6 +1611,9 @@
                 );
 
                 let importedCount = 0;
+
+                // Limpa os dados atuais do parceiro (SPG Oásis) para evitar duplicação antes de iniciar o loop
+                harvestData = harvestData.filter(item => item.partner !== 'SPG Oásis');
 
                 // Formatar datas dd/mm/yyyy para o formato que o input aceita (yyyy-mm-dd)
                 function formatToISO(d) {
