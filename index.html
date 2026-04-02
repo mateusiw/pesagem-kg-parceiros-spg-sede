@@ -1441,12 +1441,18 @@
                 const idxVariety = getIdx(['cultura', 'variety']);
                 const idxCommVariety = getIdx(['variedade', 'commercial']);
                 const idxBoxes = getIdx(['caixa', 'boxes']);
-                const idxTotalUnits = getIdx(['unidades', 'total']);
                 const idxProdDays = getIdx(['dias', 'production']);
                 const idxPlanted = getIdx(['plantada', 'planted']);
                 const idxAccum = getIdx(['acumuladas', 'accumulated', 'acumulado']);
                 const idxStatus = getIdx(['status']);
                 const idxPrev = getIdx(['previsao', 'previsão', 'estimated']);
+                
+                // Lógica aprimorada: Encontra "Total de Unidades" garantindo que não pegue "Acumulada" ou "Plantada" por engano
+                const idxTotalUnits = headers.findIndex((h, i) => 
+                    i !== idxAccum && 
+                    i !== idxPlanted && 
+                    (h.includes('hoje') || h.includes('total') || h.includes('unidade') || h.includes('qtd'))
+                );
 
                 let importedCount = 0;
 
