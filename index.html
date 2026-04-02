@@ -18,9 +18,8 @@
     <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- BIBLIOTECAS MANUAIS (html2canvas + jsPDF) -->
+    <!-- BIBLIOTECAS MANUAIS (html2canvas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -53,12 +52,6 @@
             <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
                 <i data-lucide="image" class="w-4 h-4"></i>
                 <span>Baixar Imagem</span>
-            </button>
-
-            <!-- Botão PDF -->
-            <button id="pdfBtn" type="button" onclick="downloadPDF()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-red-600/20 transition-all active:scale-95 active:bg-red-800 whitespace-nowrap">
-                <i data-lucide="file-down" class="w-4 h-4"></i>
-                <span>Baixar PDF</span>
             </button>
         </div>
     </div>
@@ -268,6 +261,48 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SUCESSO DE IMPORTAÇÃO (NOVO) -->
+    <div id="importSuccessModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col">
+            <div class="bg-emerald-500 p-6 flex flex-col items-center justify-center text-white">
+                <i data-lucide="check-circle" class="w-12 h-12 mb-3"></i>
+                <h3 class="text-xl font-bold">Importação Concluída</h3>
+            </div>
+            <div class="p-6 text-center">
+                <p id="importSuccessCount" class="text-lg font-extrabold text-slate-800 mb-2"></p>
+                <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+                    Passo Final: Clique em <b>"Editar"</b> (ícone de lápis) nos itens recém-gerados da lista para preencher o <b>"Peso (kg) Hoje"</b>.
+                </p>
+                <button onclick="closeImportSuccessModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95">
+                    Entendi, vamos lá!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE LIMPEZA (NOVO) -->
+    <div id="clearAllModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col">
+            <div class="bg-red-500 p-6 flex flex-col items-center justify-center text-white">
+                <i data-lucide="alert-triangle" class="w-12 h-12 mb-3"></i>
+                <h3 class="text-xl font-bold">Atenção!</h3>
+            </div>
+            <div class="p-6 text-center">
+                <p id="clearAllMessage" class="text-sm text-slate-600 mb-6 leading-relaxed">
+                    <!-- Texto injetado via JS -->
+                </p>
+                <div class="flex gap-3">
+                    <button onclick="closeClearAllModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all shadow-sm active:scale-95">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmClearAll()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -876,20 +911,57 @@
             }
         }
 
+        // --- FUNÇÕES DO MODAL DE LIMPAR TUDO (NOVAS) ---
+        let partnerToClear = ''; // Variável global temporária
+
+        function showClearAllModal(partnerName) {
+            const modal = document.getElementById('clearAllModal');
+            const messageEl = document.getElementById('clearAllMessage');
+            const innerBox = modal.querySelector('div.bg-white');
+            
+            messageEl.innerHTML = `Tem certeza que deseja limpar <b>todos os blocos</b> de <span class="text-red-600 font-bold">${partnerName}</span>?<br><br><span class="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Esta ação não pode ser desfeita.</span>`;
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            innerBox.classList.remove('scale-95');
+        }
+
+        function closeClearAllModal() {
+            const modal = document.getElementById('clearAllModal');
+            const innerBox = modal.querySelector('div.bg-white');
+            
+            modal.classList.add('opacity-0');
+            innerBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
         function clearAll() {
             const partnerSelect = document.getElementById('partner');
             const currentPartner = partnerSelect ? partnerSelect.value : '';
 
             if(!currentPartner) return;
 
-            if(confirm(`Tem certeza que deseja limpar os dados de ${currentPartner}?`)) {
-                // Remove apenas os itens do parceiro atual da memória
-                harvestData = harvestData.filter(item => item.partner !== currentPartner);
-                saveToStorage(); 
-                clearBlockForm(); 
-                renderReport();
-                renderList();
-            }
+            // Abre o modal moderno em vez do confirm() do navegador
+            partnerToClear = currentPartner;
+            showClearAllModal(currentPartner);
+        }
+
+        function confirmClearAll() {
+            if(!partnerToClear) return;
+
+            // Remove apenas os itens do parceiro atual da memória
+            harvestData = harvestData.filter(item => item.partner !== partnerToClear);
+            saveToStorage(); 
+            clearBlockForm(); 
+            renderReport();
+            renderList();
+            
+            closeClearAllModal();
+            partnerToClear = ''; // Limpa a variável
         }
 
         function renderList() {
@@ -1410,7 +1482,35 @@
             document.body.removeChild(textArea);
         }
 
-        // --- FUNÇÃO PARA IMPORTAR CSV (NOVA) ---
+        // --- FUNÇÕES DO MODAL DE SUCESSO DE IMPORTAÇÃO (NOVAS) ---
+        function showImportSuccessModal(count) {
+            const modal = document.getElementById('importSuccessModal');
+            const countEl = document.getElementById('importSuccessCount');
+            const innerBox = modal.querySelector('div.bg-white');
+            
+            countEl.innerText = `${count} blocos importados com sucesso!`;
+            
+            modal.classList.remove('hidden');
+            // Força a reflow (recalculo) do navegador para ativar as transições de classe CSS
+            void modal.offsetWidth; 
+            
+            modal.classList.remove('opacity-0');
+            innerBox.classList.remove('scale-95');
+        }
+
+        function closeImportSuccessModal() {
+            const modal = document.getElementById('importSuccessModal');
+            const innerBox = modal.querySelector('div.bg-white');
+            
+            modal.classList.add('opacity-0');
+            innerBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // 300ms é o tempo da duração (duration-300 no Tailwind)
+        }
+
+        // --- FUNÇÃO PARA IMPORTAR CSV ---
         function importCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1505,8 +1605,9 @@
                 
                 event.target.value = ''; // Limpa o input file para permitir importar novamente o mesmo arquivo
                 
+                // Exibe o modal moderno no lugar do alert() do navegador
                 if (importedCount > 0) {
-                    alert(`${importedCount} blocos importados com sucesso!\n\nPasso Final: Clique em "Editar" (ícone de lápis) nos itens recém-gerados da lista para preencher o "Peso (kg) Hoje".`);
+                    showImportSuccessModal(importedCount);
                 }
             };
             reader.readAsText(file);
@@ -1596,101 +1697,6 @@
                 alert("Erro ao gerar imagem: " + err.message);
             } finally {
                 document.querySelector('button[onclick="downloadImage()"] span').innerText = originalText;
-            }
-        }
-
-
-        // --- FUNÇÃO DE DOWNLOAD PDF (Manual - Estilo Mobile Simulado) ---
-        async function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById('report-card');
-            const originalText = document.querySelector('button[onclick="downloadPDF()"] span').innerText;
-            document.querySelector('button[onclick="downloadPDF()"] span').innerText = "Gerando PDF...";
-
-            try {
-                // DEFINIR LARGURA DINÂMICA (Mais largo se for grade)
-                const displayData = getFilteredData().filter(item => item.active !== false);
-                const isGrid = displayData.length > 3;
-                const targetWidth = isGrid ? '850px' : '450px';
-                const winWidth = isGrid ? 900 : 480;
-                const pdfImgWidth = isGrid ? 850 : 450;
-
-                // 1. Configurar opções para captura de ALTA FIDELIDADE
-                const options = {
-                    scale: 3, // 3x a resolução original (Retina Quality)
-                    useCORS: true,
-                    allowTaint: true,
-                    scrollY: -window.scrollY,
-                    backgroundColor: '#ffffff', // Garante fundo branco
-                    windowWidth: winWidth, // Força renderização para ativar md:grid-cols-2 se necessário
-                    onclone: (doc) => {
-                        const el = doc.getElementById('report-card');
-                        const content = doc.getElementById('reportContent');
-                        
-                        // Força estilos para renderização perfeita
-                        if (el) { 
-                            el.style.width = targetWidth; 
-                            el.style.maxWidth = targetWidth;
-                            el.style.margin = '0'; 
-                            el.style.boxShadow = 'none';
-                            el.style.borderRadius = '0';
-                            el.style.border = 'none';
-                        }
-                        if (content) { 
-                            content.style.height = 'auto'; 
-                            content.style.overflow = 'visible'; 
-                            content.style.maxHeight = 'none';
-                        }
-                    }
-                };
-
-                const canvas = await html2canvas(element, options);
-                
-                // 2. Dimensões do PDF
-                // O truque da nitidez: O PDF tem o tamanho VISUAL do elemento (ex: 450px ou 850px)
-                // Mas a imagem inserida nele tem 3x essa resolução (do scale: 3)
-                const pageHeight = (canvas.height * pdfImgWidth) / canvas.width; // Altura proporcional
-
-                const pdf = new jsPDF({
-                    orientation: 'p',
-                    unit: 'px',
-                    format: [pdfImgWidth, pageHeight], // Tamanho da folha dinâmico
-                    hotfixes: ['px_scaling'] // CRÍTICO: Corrige escala em diferentes dispositivos
-                });
-
-                // 3. Inserir imagem de alta resolução compactada no tamanho visual
-                const imgData = canvas.toDataURL('image/png'); // PNG para texto nítido (sem artefatos de JPG)
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfImgWidth, pageHeight);
-                // Dia da semana (Primeira letra maiúscula)
-                let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
-                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-
-                // Nome do Parceiro
-                const partnerInput = document.getElementById('partner');
-                let partnerName = "Geral"; // Padrão se não houver parceiro
-                
-                if (partnerInput && partnerInput.value) {
-                    partnerName = partnerInput.value;
-                } else if (harvestData.length > 0 && harvestData[0].partner) {
-                    partnerName = harvestData[0].partner;
-                }
-
-                // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
-                let filePrefix = "Resumo da Pesagem (kg)";
-                if (partnerName === "SPG Oásis") {
-                    filePrefix = "Resumo da Produção";
-                }
-
-                // Nome final do arquivo
-                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.pdf`;
-
-                pdf.save(fileName);
-
-            } catch (err) {
-                console.error("Erro ao gerar PDF:", err);
-                alert("Erro ao gerar PDF: " + err.message);
-            } finally {
-                document.querySelector('button[onclick="downloadPDF()"] span').innerText = originalText;
             }
         }
     </script>
