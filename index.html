@@ -335,6 +335,7 @@
         console.log("Aplicação 'Resumo Colheita Parceiros SPG SEDE' carregada com sucesso.");
 
         let harvestData = [];
+        let forecastBlocksData = []; // ADICIONADO: Variável para armazenar as previsões de blocos
         let editingIndex = -1;
         const STORAGE_KEY = 'spg_sede_data'; // Chave para o localStorage
 
@@ -374,6 +375,12 @@
                                  updateDynamicTitle();
                              }
                         }
+                    }
+                    
+                    // ADICIONADO: Carrega as previsões de blocos salvas
+                    const storedForecasts = localStorage.getItem('spg_sede_forecasts');
+                    if (storedForecasts) {
+                        forecastBlocksData = JSON.parse(storedForecasts);
                     }
                     
                     renderList();
@@ -1007,6 +1014,13 @@
             // Remove apenas os itens do parceiro atual da memória
             harvestData = harvestData.filter(item => item.partner !== partnerToClear);
             saveToStorage(); 
+            
+            // ADICIONADO: Limpa as previsões ao limpar o Oásis
+            if (partnerToClear === 'SPG Oásis') {
+                forecastBlocksData = [];
+                localStorage.setItem('spg_sede_forecasts', JSON.stringify(forecastBlocksData));
+            }
+
             clearBlockForm(); 
             renderReport();
             renderList();
@@ -1293,6 +1307,53 @@
             // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
+            // ADICIONADO: Lógica para renderizar Previsão de Blocos (Próximos Blocos)
+            let forecastHtml = '';
+            const currentPartner = document.getElementById('partner') ? document.getElementById('partner').value : '';
+            if (currentPartner === 'SPG Oásis' && typeof forecastBlocksData !== 'undefined' && forecastBlocksData.length > 0) {
+                const validForecasts = forecastBlocksData.filter(f => f.block && f.date);
+                if (validForecasts.length > 0) {
+                    validForecasts.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const listHtml = validForecasts.map(f => {
+                        const [year, month, day] = f.date.split('-');
+                        const targetDate = new Date(year, month - 1, day);
+                        targetDate.setHours(0, 0, 0, 0);
+                        const diffTime = targetDate - today;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        let daysText = '';
+                        let daysClass = '';
+                        if (diffDays > 1) { daysText = `Faltam ${diffDays} dias`; daysClass = 'text-blue-600'; }
+                        else if (diffDays === 1) { daysText = `Amanhã`; daysClass = 'text-amber-600'; }
+                        else if (diffDays === 0) { daysText = `Hoje`; daysClass = 'text-emerald-600'; }
+                        else { daysText = `Atrasado ${Math.abs(diffDays)} dias`; daysClass = 'text-red-600'; }
+
+                        return `<div class="bg-white border border-slate-200 shadow-sm rounded-lg p-2 flex flex-col gap-1 min-w-[110px]">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="text-[11px] font-extrabold text-slate-700">BLOCO ${f.block}</span>
+                                        <span class="text-[10px] font-bold text-slate-500 uppercase">${formatDisplayDate(f.date)}</span>
+                                    </div>
+                                    <div class="text-[9px] font-extrabold text-center uppercase tracking-wider ${daysClass} mt-0.5">
+                                        ${daysText}
+                                    </div>
+                                </div>`;
+                    }).join('');
+
+                    forecastHtml = `
+                    <div class="mt-4 pt-4 border-t border-slate-100 border-dashed flex flex-col items-center justify-center w-full">
+                        <div class="flex items-center gap-1 mb-3 text-blue-500">
+                            <span class="text-[10px] font-bold uppercase tracking-widest">Previsão de Colheita (Próximos Blocos)</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 justify-center w-full">
+                            ${listHtml}
+                        </div>
+                    </div>`;
+                }
+            }
+
             footerContainer.innerHTML = `
                 <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
                 <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
@@ -1326,6 +1387,7 @@
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
                 </div>
+                ${forecastHtml}
             `;
             // Call createIcons again just in case
             lucide.createIcons();
@@ -1426,6 +1488,17 @@
                     
                     text += `\n`;
                 });
+
+                // ADICIONADO: Lista os próximos blocos no zap também
+                if (typeof forecastBlocksData !== 'undefined' && forecastBlocksData.length > 0) {
+                    text += `\`=== PRÓXIMOS BLOCOS ===\`\n\n`;
+                    const validForecasts = forecastBlocksData.filter(f => f.block && f.date);
+                    validForecasts.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    validForecasts.forEach(f => {
+                        text += `*Bloco ${f.block}:* ${formatDisplayDate(f.date)}\n`;
+                    });
+                    text += `\n`;
+                }
 
                 // Totais Globais para SPG Oásis
                 let globalAvgWeight = 0;
@@ -1598,9 +1671,10 @@
                 const idxStatus = getIdx(['status']);
                 const idxPrev = getIdx(['previsao', 'previsão', 'estimated']);
                 
-                // NOVO: Busca coluna de visibilidade
+                // NOVO: Busca coluna de visibilidade e de previsão
                 const idxOculto = getIdx(['oculto', 'hidden']);
                 const idxAtivo = getIdx(['ativo', 'active', 'visível', 'visivel']);
+                const idxInicio = getIdx(['início colheita', 'inicio colheita', 'início']);
                 
                 // Lógica aprimorada: Encontra "Total de Unidades" garantindo que não pegue "Acumulada" ou "Plantada" por engano
                 const idxTotalUnits = headers.findIndex((h, i) => 
@@ -1613,6 +1687,7 @@
 
                 // Limpa os dados atuais do parceiro (SPG Oásis) para evitar duplicação antes de iniciar o loop
                 harvestData = harvestData.filter(item => item.partner !== 'SPG Oásis');
+                forecastBlocksData = []; // ADICIONADO: Limpa as previsões anteriores
 
                 // Formatar datas dd/mm/yyyy para o formato que o input aceita (yyyy-mm-dd)
                 function formatToISO(d) {
@@ -1626,6 +1701,21 @@
                     // Remove aspas excedentes das colunas se houver
                     const row = lines[i].split(sep).map(col => col.trim().replace(/^"|"$/g, '')); 
                     if (row.length < 2) continue;
+
+                    const statusRaw = idxStatus !== -1 && row[idxStatus] ? row[idxStatus] : '';
+
+                    // ADICIONADO: Captura de Previsão de Colheita da planilha
+                    if (statusRaw.toUpperCase() === 'PREVISÃO DE COLHEITA') {
+                        const fBlock = idxTalhao !== -1 && row[idxTalhao] ? row[idxTalhao] : '';
+                        let fDate = idxInicio !== -1 && row[idxInicio] ? row[idxInicio] : '';
+                        if (fDate && fDate.includes('/')) {
+                            fDate = fDate.split('/').reverse().join('-');
+                        }
+                        if (fBlock || fDate) {
+                            forecastBlocksData.push({ block: fBlock, date: fDate });
+                        }
+                        continue; // Pula a inserção normal, já pegou como previsão!
+                    }
 
                     // VERIFICA STATUS DE OCULTO
                     let isActive = true;
@@ -1668,6 +1758,7 @@
                 }
 
                 saveToStorage();
+                localStorage.setItem('spg_sede_forecasts', JSON.stringify(forecastBlocksData)); // ADICIONADO
                 renderList();
                 renderReport();
                 
