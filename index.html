@@ -1307,7 +1307,7 @@
             // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-            // ADICIONADO: Lógica para renderizar Previsão de Blocos (Próximos Blocos)
+            // ADICIONADO: Lógica para renderizar Previsão de Blocos (Próximos Blocos) com cálculo de Semanas
             let forecastHtml = '';
             const currentPartner = document.getElementById('partner') ? document.getElementById('partner').value : '';
             if (currentPartner === 'SPG Oásis' && typeof forecastBlocksData !== 'undefined' && forecastBlocksData.length > 0) {
@@ -1326,7 +1326,22 @@
 
                         let daysText = '';
                         let daysClass = '';
-                        if (diffDays > 1) { daysText = `Faltam ${diffDays} dias`; daysClass = 'text-blue-600'; }
+                        let subtitleHtml = '';
+
+                        if (diffDays > 1) { 
+                            daysText = `Faltam ${diffDays} dias`; 
+                            daysClass = 'text-blue-600'; 
+                            
+                            // Lógica de Semanas e Dias
+                            if (diffDays >= 7) {
+                                const weeks = Math.floor(diffDays / 7);
+                                const rDays = diffDays % 7;
+                                let weekStr = weeks === 1 ? '1 semana' : `${weeks} semanas`;
+                                let dayStr = rDays === 1 ? '1 dia' : `${rDays} dias`;
+                                let subText = rDays > 0 ? `(${weekStr} e ${dayStr})` : `(${weekStr})`;
+                                subtitleHtml = `<span class="text-[8px] font-semibold text-slate-400 mt-0.5 tracking-normal lowercase">${subText}</span>`;
+                            }
+                        }
                         else if (diffDays === 1) { daysText = `Amanhã`; daysClass = 'text-amber-600'; }
                         else if (diffDays === 0) { daysText = `Hoje`; daysClass = 'text-emerald-600'; }
                         else { daysText = `Atrasado ${Math.abs(diffDays)} dias`; daysClass = 'text-red-600'; }
@@ -1336,8 +1351,9 @@
                                         <span class="text-[11px] font-extrabold text-slate-700">BLOCO ${f.block}</span>
                                         <span class="text-[10px] font-bold text-slate-500 uppercase">${formatDisplayDate(f.date)}</span>
                                     </div>
-                                    <div class="text-[9px] font-extrabold text-center uppercase tracking-wider ${daysClass} mt-0.5">
-                                        ${daysText}
+                                    <div class="text-[9px] font-extrabold text-center uppercase tracking-wider ${daysClass} mt-0.5 flex flex-col items-center">
+                                        <span>${daysText}</span>
+                                        ${subtitleHtml}
                                     </div>
                                 </div>`;
                     }).join('');
