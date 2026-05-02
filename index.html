@@ -42,16 +42,26 @@
             </div>
         </div>
         <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <!-- Botão WhatsApp (ID: btnZap) -->
+            <!-- Botão WhatsApp (Padronizado) -->
             <button id="btnZap" onclick="copyToWhatsApp()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 active:bg-emerald-700 whitespace-nowrap">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                 <span>Texto Zap</span>
             </button>
             
-            <!-- Botão Imagem (NOVO) -->
-            <button onclick="downloadImage()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
+            <!-- Botões Imagem -->
+            <button id="btnImageDefault" onclick="downloadImage('default')" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
                 <i data-lucide="image" class="w-4 h-4"></i>
                 <span>Baixar Imagem</span>
+            </button>
+
+            <button id="btnImageTecnico" onclick="downloadImage('tecnico')" style="display:none;" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
+                <i data-lucide="image" class="w-4 h-4"></i>
+                <span>Resumo Técnico</span>
+            </button>
+
+            <button id="btnImageGrupo" onclick="downloadImage('grupo')" style="display:none;" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 active:bg-indigo-800 whitespace-nowrap">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+                <span>Resumo Grupo</span>
             </button>
         </div>
     </div>
@@ -414,6 +424,46 @@
             return filtered;
         }
 
+        // --- FUNÇÃO DE AGRUPAMENTO (GERAÇÃO DE IMAGEM GRUPO) ---
+        function getGroupedData(originalData) {
+            const grouped = {};
+            originalData.forEach(item => {
+                const block = item.talhao;
+                if (!grouped[block]) {
+                    grouped[block] = { 
+                        ...item, 
+                        boxes: 0, 
+                        harvestWeight: 0, 
+                        totalUnits: 0, 
+                        accumulatedUnits: 0, 
+                        plantedUnits: 0,
+                        commercialVariety: '',
+                        variety: 'Agrupado' // Nome genérico para visualização
+                    };
+                }
+                grouped[block].boxes += parsePTBRNumber(item.boxes);
+                grouped[block].harvestWeight += parsePTBRNumber(item.harvestWeight);
+                grouped[block].totalUnits += parsePTBRNumber(item.totalUnits);
+                grouped[block].accumulatedUnits += parsePTBRNumber(item.accumulatedUnits);
+                grouped[block].plantedUnits += parsePTBRNumber(item.plantedUnits);
+            });
+            
+            return Object.values(grouped).map(group => {
+                let avgValG = 0;
+                if (group.totalUnits > 0) avgValG = group.harvestWeight / group.totalUnits;
+                
+                return {
+                    ...group,
+                    boxes: group.boxes > 0 ? group.boxes.toLocaleString('pt-BR') : "0",
+                    harvestWeight: group.harvestWeight > 0 ? group.harvestWeight.toLocaleString('pt-BR', { maximumFractionDigits: 3 }) : "",
+                    totalUnits: group.totalUnits > 0 ? group.totalUnits.toLocaleString('pt-BR') : "0",
+                    accumulatedUnits: group.accumulatedUnits > 0 ? group.accumulatedUnits.toLocaleString('pt-BR') : "0",
+                    plantedUnits: group.plantedUnits > 0 ? group.plantedUnits.toLocaleString('pt-BR') : "0",
+                    averageWeight: avgValG > 0 ? avgValG.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "",
+                    unitsPerBox: group.boxes > 0 ? (group.totalUnits / group.boxes).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) : ""
+                };
+            });
+        }
 
         // --- FUNÇÕES DE DATA E HORA ---
 
@@ -470,8 +520,12 @@
             const unitsPerBoxInput = document.getElementById('unitsPerBox');
             const spgFields = document.getElementById('spgOasisFields');
             const netWeightWrapper = document.getElementById('netWeightWrapper'); 
+            
             const btnZap = document.getElementById('btnZap'); 
-            const btnImportCsv = document.getElementById('btnImportCsv'); // ADICIONADO: Botão CSV
+            const btnImageDefault = document.getElementById('btnImageDefault');
+            const btnImageTecnico = document.getElementById('btnImageTecnico');
+            const btnImageGrupo = document.getElementById('btnImageGrupo');
+            const btnImportCsv = document.getElementById('btnImportCsv'); 
             
             // Wrappers Dinâmicos
             const blocoWrapper = document.getElementById('blocoWrapper');
@@ -513,7 +567,10 @@
                 spgFields.classList.add('hidden');
 
                 if (btnZap) btnZap.style.display = 'flex';
-                if (btnImportCsv) btnImportCsv.classList.add('hidden'); // ADICIONADO: Ocultar CSV
+                if (btnImageDefault) btnImageDefault.style.display = 'flex';
+                if (btnImageTecnico) btnImageTecnico.style.display = 'none';
+                if (btnImageGrupo) btnImageGrupo.style.display = 'none';
+                if (btnImportCsv) btnImportCsv.classList.add('hidden'); 
                 
                 talhaoInput.required = false;
                 const cvInput = document.getElementById('commercialVariety');
@@ -546,9 +603,12 @@
                 // OCULTAR PESO LÍQUIDO
                 netWeightWrapper.classList.add('hidden');
 
-                // OCULTAR BOTÃO ZAP
-                if (btnZap) btnZap.style.display = 'none';
-                if (btnImportCsv) btnImportCsv.classList.remove('hidden'); // ADICIONADO: Exibir CSV
+                // EXIBIR BOTÕES EXCLUSIVOS DO OÁSIS
+                if (btnZap) btnZap.style.display = 'flex';
+                if (btnImageDefault) btnImageDefault.style.display = 'none';
+                if (btnImageTecnico) btnImageTecnico.style.display = 'flex';
+                if (btnImageGrupo) btnImageGrupo.style.display = 'flex';
+                if (btnImportCsv) btnImportCsv.classList.remove('hidden'); 
 
                 // MODO SPG OASIS: Total Unidades Manual, Média Unidades Auto
                 totalUnitsInput.removeAttribute('readonly');
@@ -609,9 +669,12 @@
                 // OCULTAR PESO LIQUIDO TAMBÉM PARA OS OUTROS PARCEIROS
                 netWeightWrapper.classList.add('hidden');
 
-                // EXIBIR BOTÃO ZAP
+                // EXIBIR BOTÕES PADRÕES
                 if (btnZap) btnZap.style.display = 'flex';
-                if (btnImportCsv) btnImportCsv.classList.add('hidden'); // ADICIONADO: Ocultar CSV
+                if (btnImageDefault) btnImageDefault.style.display = 'flex';
+                if (btnImageTecnico) btnImageTecnico.style.display = 'none';
+                if (btnImageGrupo) btnImageGrupo.style.display = 'none';
+                if (btnImportCsv) btnImportCsv.classList.add('hidden'); 
 
                 // MODO PADRÃO: Total Unidades Auto, Média Unidades Manual
                 totalUnitsInput.setAttribute('readonly', true);
@@ -1472,7 +1535,7 @@
             let globalUnits = 0;
 
             if (isSPGOasis) {
-                // SPG OÁSIS: Mantém lista detalhada por Bloco
+                // SPG OÁSIS - RESUMO TEXTO (Padrão e Detalhado)
                 displayData.forEach(item => {
                     const weight = parsePTBRNumber(item.harvestWeight); 
                     const boxes = parsePTBRNumber(item.boxes);
@@ -1492,7 +1555,9 @@
                     const unitsPerBoxStr = manualUnitsPerBox.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); 
                     const kgPerUnitStr = avgWeightG.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); 
 
-                    text += `\`Bloco ${item.talhao}\`\n\n`;
+                    const variedadeInfo = item.commercialVariety ? `${item.variety} - ${item.commercialVariety}` : item.variety;
+                    text += `\`Bloco ${item.talhao} (${variedadeInfo})\`\n\n`;
+                    
                     text += `*Peso (kg):* ${weightStr}\n\n`; 
                     text += `*Peso Médio (g/unid.):* ${kgPerUnitStr}\n\n`; 
                     text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`;
@@ -1789,12 +1854,33 @@
         }
 
         // --- FUNÇÃO PARA GERAR IMAGEM HD (NOVA) ---
-        async function downloadImage() {
-            const element = document.getElementById('report-card');
-            const originalText = document.querySelector('button[onclick="downloadImage()"] span').innerText;
-            document.querySelector('button[onclick="downloadImage()"] span').innerText = "Gerando Imagem...";
+        async function downloadImage(type = 'default') {
+            const btnId = type === 'grupo' ? 'btnImageGrupo' : (type === 'tecnico' ? 'btnImageTecnico' : 'btnImageDefault');
+            const btnElement = document.getElementById(btnId);
+            const btnSpan = btnElement ? btnElement.querySelector('span') : null;
+            let originalText = btnSpan ? btnSpan.innerText : "Gerando Imagem...";
+            
+            if (btnSpan) btnSpan.innerText = "Gerando...";
+
+            let originalDataTemp = null;
 
             try {
+                // SE FOR TIPO GRUPO: Substitui temporariamente a visualização na tela
+                if (type === 'grupo') {
+                    originalDataTemp = [...harvestData]; // Salva estado original
+                    const currentPartner = document.getElementById('partner').value;
+                    const itemsToGroup = originalDataTemp.filter(item => item.partner === currentPartner && item.active !== false);
+                    
+                    // Altera os dados para o modo agrupado
+                    harvestData = getGroupedData(itemsToGroup);
+                    renderReport();
+                    
+                    // Aguarda a renderização visual do navegador estabilizar (importante para o html2canvas)
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                const element = document.getElementById('report-card');
+
                 // DEFINIR LARGURA DINÂMICA (Mais largo se for grade)
                 const displayData = getFilteredData().filter(item => item.active !== false);
                 const isGrid = displayData.length > 3;
@@ -1854,7 +1940,7 @@
                 // LÓGICA DE PREFIXO DO NOME DO ARQUIVO
                 let filePrefix = "Resumo da Pesagem (kg)";
                 if (partnerName === "SPG Oásis") {
-                    filePrefix = "Resumo da Produção";
+                    filePrefix = type === 'grupo' ? "Resumo Producao Oásis (Agrupado)" : "Resumo Producao Oásis (Detalhado)";
                 }
 
                 const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.png`;
@@ -1871,7 +1957,13 @@
                 console.error("Erro ao gerar imagem:", err);
                 alert("Erro ao gerar imagem: " + err.message);
             } finally {
-                document.querySelector('button[onclick="downloadImage()"] span').innerText = originalText;
+                if (btnSpan) btnSpan.innerText = originalText;
+                
+                // SE FOR TIPO GRUPO: Retorna a visualização na tela para o estado original (desagrupado)
+                if (type === 'grupo' && originalDataTemp) {
+                    harvestData = originalDataTemp;
+                    renderReport();
+                }
             }
         }
     </script>
