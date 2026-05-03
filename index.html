@@ -48,19 +48,19 @@
                 <span>Texto Zap</span>
             </button>
             
-            <!-- Botões Imagem -->
+            <!-- Botões Imagem Compartilhar -->
             <button id="btnImageDefault" onclick="downloadImage('default')" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
-                <i data-lucide="image" class="w-4 h-4"></i>
-                <span>Baixar Imagem</span>
+                <i data-lucide="share-2" class="w-4 h-4"></i>
+                <span>Compart. Imagem</span>
             </button>
 
             <button id="btnImageTecnico" onclick="downloadImage('tecnico')" style="display:none;" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 active:bg-blue-700 whitespace-nowrap">
-                <i data-lucide="image" class="w-4 h-4"></i>
+                <i data-lucide="share-2" class="w-4 h-4"></i>
                 <span>Resumo Técnico</span>
             </button>
 
             <button id="btnImageGrupo" onclick="downloadImage('grupo')" style="display:none;" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all active:scale-95 active:bg-indigo-800 whitespace-nowrap">
-                <i data-lucide="layers" class="w-4 h-4"></i>
+                <i data-lucide="share-2" class="w-4 h-4"></i>
                 <span>Resumo Grupo</span>
             </button>
         </div>
@@ -1519,16 +1519,14 @@
             weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
             
             const partnerInput = document.getElementById('partner');
-            let headerName = "Pessoal";
+            let rawPartnerName = partnerInput && partnerInput.value ? partnerInput.value : '';
+            let headerName = (rawPartnerName === 'SPG Oásis' || !rawPartnerName) ? "Pessoal" : rawPartnerName;
             
-            if (partnerInput && partnerInput.value) {
-                headerName = partnerInput.value;
-            }
-            
-            let text = `${greeting}, ${headerName}!\n\n`;
-            text += `Pesagem de ${weekday} ${refDate} - Semana ${weekNumber}\n\n`;
+            const isSPGOasis = rawPartnerName === 'SPG Oásis';
+            const titlePrefix = isSPGOasis ? 'Resumo da Produção' : 'Resumo da Pesagem';
 
-            const isSPGOasis = headerName === 'SPG Oásis';
+            let text = `*${greeting}, ${headerName}!*\n\n`;
+            text += `\`${titlePrefix} de ${weekday} (${refDate} - S${weekNumber})\`\n\n`;
 
             let globalKg = 0;
             let globalBoxes = 0;
@@ -1924,7 +1922,7 @@
                 
                 // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
                 const now = new Date();
-                const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+                const dateStr = now.toLocaleDateString('pt-BR');
                 const weekNum = getWeekNumber(now);
                 let weekday = now.toLocaleDateString('pt-BR', { weekday: 'long' });
                 weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
@@ -1943,15 +1941,96 @@
                     filePrefix = type === 'grupo' ? "Resumo Producao Oásis (Agrupado)" : "Resumo Producao Oásis (Detalhado)";
                 }
 
-                const fileName = `${filePrefix} - ${weekday} ${dateStr} Semana ${weekNum} - ${partnerName}.png`;
+                const fileName = `${filePrefix} - ${weekday} ${dateStr.replace(/\//g, '-')} Semana ${weekNum} - ${partnerName}.png`;
 
-                // Cria elemento temporário para download
-                const link = document.createElement('a');
-                link.href = imgData;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // --- NOVO: LÓGICA DE COMPARTILHAMENTO E RESUMO ---
+                // Pega os dados atuais ativos (se for grupo, harvestData já está agrupado aqui)
+                const currentDataForStats = harvestData.filter(item => item.active !== false);
+                
+                let sumKg = 0;
+                let sumUnits = 0;
+                let sumBoxes = 0; // ADICIONADO: Variável para somar as caixas
+                currentDataForStats.forEach(item => {
+                    sumKg += parsePTBRNumber(item.harvestWeight);
+                    sumUnits += parsePTBRNumber(item.totalUnits);
+                    sumBoxes += parsePTBRNumber(item.boxes); // ADICIONADO: Soma as caixas
+                });
+                let avgW = 0;
+                if(sumUnits > 0) avgW = sumKg / sumUnits;
+                
+                const greetingStr = getGreeting();
+                
+                let rawPartnerName = partnerInput && partnerInput.value ? partnerInput.value : '';
+                let displayHeaderName = (rawPartnerName === 'SPG Oásis' || !rawPartnerName) ? 'Pessoal' : rawPartnerName;
+                const titlePrefix = rawPartnerName === 'SPG Oásis' ? 'Resumo da Produção' : 'Resumo da Pesagem';
+
+                // NOVO: Conta apenas blocos únicos (ex: Bloco 9 bro e Bloco 9 master conta como 1)
+                let numBlocks = 0;
+                if (rawPartnerName === 'SPG Oásis') {
+                    // Usa Set para pegar apenas os talhões que não se repetem
+                    numBlocks = new Set(currentDataForStats.map(item => item.talhao)).size;
+                } else {
+                    // Para os outros parceiros conta culturas únicas
+                    numBlocks = new Set(currentDataForStats.map(item => item.variety)).size;
+                }
+
+                // ATUALIZADO: Formatação de texto para o WhatsApp com negrito, Crase e Data + Semana
+                const summaryText = `*${greetingStr}, ${displayHeaderName}!*\n\n` +
+                                    `\`${titlePrefix} de ${weekday} (${dateStr} - S${weekNum})\`\n\n` +
+                                    `*Blocos em Produção:* ${numBlocks}\n\n` +
+                                    `*Unidades:* ${sumUnits.toLocaleString('pt-BR')}\n\n` +
+                                    `*Peso (kg):* ${sumKg.toLocaleString('pt-BR')}\n\n` +
+                                    `*Média (g):* ${avgW.toLocaleString('pt-BR', {minimumFractionDigits: 3, maximumFractionDigits: 3})}\n\n` +
+                                    `*Caixas:* ${sumBoxes.toLocaleString('pt-BR')}`;
+
+                // Converte DataURL para File
+                function dataURLtoFile(dataurl, filename) {
+                    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+                    while(n--){
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    return new File([u8arr], filename, {type:mime});
+                }
+                
+                const fileToShare = dataURLtoFile(imgData, fileName);
+
+                // Verifica se o navegador suporta o compartilhamento de arquivos
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [fileToShare] })) {
+                    try {
+                        await navigator.share({
+                            files: [fileToShare],
+                            title: fileName,
+                            text: summaryText
+                        });
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error("Erro no compartilhamento:", err);
+                            // Fallback caso dê erro no share
+                            triggerDownload(imgData, fileName);
+                        }
+                    }
+                } else {
+                    // Fallback para download clássico + cópia do texto
+                    alert("Seu dispositivo/navegador não suporta envio direto de imagens. A imagem será baixada e o texto copiado.");
+                    triggerDownload(imgData, fileName);
+                    
+                    const textArea = document.createElement("textarea");
+                    textArea.value = summaryText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try { document.execCommand('copy'); } catch(e) {}
+                    document.body.removeChild(textArea);
+                }
+
+                function triggerDownload(data, name) {
+                    const link = document.createElement('a');
+                    link.href = data;
+                    link.download = name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
 
             } catch (err) {
                 console.error("Erro ao gerar imagem:", err);
