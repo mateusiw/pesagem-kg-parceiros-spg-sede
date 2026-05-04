@@ -185,10 +185,14 @@
                                 </div>
                             </div>
                             
-                            <!-- LINHA 2 EXTRA: Acumulado e Status -->
-                            <div class="grid grid-cols-2 gap-3">
+                            <!-- LINHA 2 EXTRA: Ciclo, Acumulado e Status -->
+                            <div class="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block">Unidades Acumuladas</label>
+                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block" title="Ciclo em Dias">Ciclo</label>
+                                    <input type="number" id="cycle" placeholder="Ex: 90" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 mb-1 block" title="Unidades Acumuladas">Unid. Acum.</label>
                                     <input type="text" id="accumulatedUnits" oninput="formatNumberInput(this)" placeholder="Ex: 15.000" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
                                 <!-- NOVO: Status do Bloco -->
@@ -897,6 +901,7 @@
             document.getElementById('productionDays').value = ''; 
             document.getElementById('totalBlockPlants').value = '';
             document.getElementById('plantedUnits').value = '';
+            document.getElementById('cycle').value = ''; 
             document.getElementById('accumulatedUnits').value = ''; 
             document.getElementById('harvestStatus').value = 'Em Andamento';
             document.getElementById('estimatedCompletion').value = '';
@@ -946,6 +951,7 @@
             document.getElementById('productionDays').value = item.productionDays || '';
             document.getElementById('totalBlockPlants').value = item.totalBlockPlants || '';
             document.getElementById('plantedUnits').value = item.plantedUnits || '';
+            document.getElementById('cycle').value = item.cycle || '';
             document.getElementById('accumulatedUnits').value = item.accumulatedUnits || '';
             document.getElementById('estimatedCompletion').value = item.estimatedCompletion || '';
             
@@ -1005,6 +1011,7 @@
                 productionDays: document.getElementById('productionDays').value,
                 totalBlockPlants: totalBlockRaw,
                 plantedUnits: plantedRawVal,
+                cycle: document.getElementById('cycle').value,
                 accumulatedUnits: accumRawVal,
                 percentage: calcPercentage,
                 blockPercentage: calcBlockPercentage,
@@ -1269,6 +1276,7 @@
                     let spgHighlightBlock = '';
                     if (item.partner === 'SPG Oásis') {
                         const days = item.productionDays || '-';
+                        const cycle = item.cycle || '-';
                         const accum = item.accumulatedUnits || '0';
                         const planted = item.plantedUnits || '0';
                         const totalBlockPlants = item.totalBlockPlants || '0';
@@ -1413,11 +1421,9 @@
                     let statusBadge = '';
                     if (item.partner === 'SPG Oásis') {
                         if (item.status === 'Finalizado') {
-                            // AJUSTE: Alterado de font-extrabold para font-medium (remove negrito pesado)
-                            statusBadge = `<span class="ml-2 text-[10px] font-medium text-red-600 uppercase tracking-wide">Finalizado</span>`;
+                            statusBadge = `<span class="text-[10px] font-bold text-red-600 uppercase tracking-wide">FINALIZADO</span>`;
                         } else {
-                            // AJUSTE: Alterado de font-extrabold para font-medium
-                            statusBadge = `<span class="ml-2 text-[10px] font-medium text-blue-600 uppercase tracking-wide">Em Andamento</span>`;
+                            statusBadge = `<span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide">EM ANDAMENTO</span>`;
                         }
                     }
 
@@ -1446,16 +1452,21 @@
                         <div class="flex flex-col mb-3">
                             ${showPartnerTag ? `<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>` : ''}
                             <!-- AJUSTE: Título com Tag limpa (sem fundo cinza) para melhor nitidez -->
-                            <div class="flex items-center justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-base font-bold text-slate-800 leading-normal">
-                                        ${item.partner === 'SPG Oásis' ? `Bloco ${item.talhao}` : item.variety}
-                                    </span>
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex flex-col">
+                                        <span class="text-[17px] font-extrabold text-slate-800 leading-none">
+                                            ${item.partner === 'SPG Oásis' ? `Bloco ${item.talhao}` : item.variety}
+                                        </span>
+                                        ${item.partner === 'SPG Oásis' && item.cycle ? `<span class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mt-1">Ciclo ${item.cycle}</span>` : ''}
+                                    </div>
                                     <!-- BADGE DE STATUS -->
-                                    ${statusBadge}
+                                    <div class="mt-0.5">
+                                        ${statusBadge}
+                                    </div>
                                 </div>
                                 <!-- Tag limpa: removido bg-slate-100 e border -->
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide text-right">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide text-right mt-0.5">
                                     ${item.partner === 'SPG Oásis' ? displayVariety : ''}
                                 </span>
                             </div>
@@ -1679,6 +1690,7 @@
                     text += `*Kg por Caixa:* ${kgPerBoxStr}\n\n`;
                     text += `*Unidades por Caixa:* ${unitsPerBoxStr}\n\n`; 
 
+                    if (item.cycle) text += `*Ciclo:* ${item.cycle}\n\n`;
                     if (item.productionDays) text += `*Dias de Produção:* ${item.productionDays}\n\n`;
                     if (item.accumulatedUnits) text += `*Unidades Acumuladas:* ${item.accumulatedUnits}\n\n`;
                     if (item.estimatedCompletion) text += `*Previsão Finalizar Bloco:* ${formatDisplayDate(item.estimatedCompletion)}\n\n`;
@@ -1863,6 +1875,7 @@
                 const idxCommVariety = getIdx(['variedade', 'commercial']);
                 const idxBoxes = getIdx(['caixa', 'boxes']);
                 const idxProdDays = getIdx(['dias', 'production']);
+                const idxCycle = getIdx(['ciclo']); // NOVO: Busca a coluna ciclo
                 const idxPlanted = getIdx(['plantada', 'planted', 'qtd variedade plantada', 'total de plantas da variedade']);
                 const idxAccum = getIdx(['acumuladas', 'accumulated', 'acumulado']);
                 const idxStatus = getIdx(['status']);
@@ -1948,6 +1961,7 @@
                         totalUnits: idxTotalUnits !== -1 && row[idxTotalUnits] ? row[idxTotalUnits] : '',
                         averageWeight: '',
                         productionDays: idxProdDays !== -1 && row[idxProdDays] ? row[idxProdDays] : '',
+                        cycle: idxCycle !== -1 && row[idxCycle] ? row[idxCycle] : '', // NOVO
                         plantedUnits: plantedRawVal,
                         totalBlockPlants: totalBlockRaw,
                         accumulatedUnits: accumRawVal,
@@ -2012,7 +2026,7 @@
 
                 const element = document.getElementById('report-card');
                 
-                // 1. OTIMIZAÇÃO DE RENDENRIZAÇÃO - PRELOAD DE IMAGENS
+                // 1. OTIMIZAÇÃO DE RENDENRIZAÇÃO - PRELOAD DE IMAGENS E ANTIALIASING
                 const images = element.querySelectorAll('img');
                 await Promise.all(Array.from(images).map(img => { 
                     if (img.complete) return Promise.resolve(); 
