@@ -239,7 +239,7 @@
         <!-- PREVIEW -->
         <div class="w-full lg:w-2/3 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 min-h-[calc(100vh-6rem)]">
             
-            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative">
+            <div id="report-card" class="w-full flex-1 flex flex-col bg-white shadow-2xl overflow-hidden border border-slate-100 relative" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;">
                 
                 <!-- Cabeçalho - ADICIONADO antialiased para nitidez -->
                 <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 text-white relative overflow-hidden flex flex-col justify-start shrink-0 gap-3 antialiased">
@@ -2011,22 +2011,26 @@
                 }
 
                 const element = document.getElementById('report-card');
+                
+                // 1. OTIMIZAÇÃO DE RENDENRIZAÇÃO - PRELOAD DE IMAGENS
+                const images = element.querySelectorAll('img');
+                await Promise.all(Array.from(images).map(img => { 
+                    if (img.complete) return Promise.resolve(); 
+                    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }); 
+                }));
 
                 // DEFINIR LARGURA DINÂMICA (Mais largo se for grade)
                 const displayData = getFilteredData().filter(item => item.active !== false);
                 const isGrid = displayData.length > 3;
                 const targetWidth = isGrid ? '850px' : '450px';
-                const winWidth = isGrid ? 900 : 480;
 
-                // AJUSTE: Scale retornado para 5. O WhatsApp comprime imagens enviadas 
-                // por compartilhamento direto, então uma escala super alta garante o HD.
+                // AJUSTE: Removido o WindowWidth, e ajustado as margens no onclone para bater com a referencia
                 const options = {
                     scale: 5, 
                     useCORS: true, 
                     allowTaint: true,
                     scrollY: -window.scrollY,
                     backgroundColor: '#ffffff', 
-                    windowWidth: winWidth, 
                     onclone: (doc) => {
                         const el = doc.getElementById('report-card');
                         const content = doc.getElementById('reportContent');
@@ -2048,9 +2052,6 @@
                 };
 
                 const canvas = await html2canvas(element, options);
-                
-                // Gera Link de Download
-                const imgData = canvas.toDataURL('image/png');
                 
                 // --- GERAR NOME DO ARQUIVO PERSONALIZADO ---
                 const now = new Date();
@@ -2075,38 +2076,33 @@
 
                 const fileName = `${filePrefix} - ${weekday} ${dateStr.replace(/\//g, '-')} Semana ${weekNum} - ${partnerName}.png`;
 
-                // --- NOVO: LÓGICA DE COMPARTILHAMENTO E RESUMO ---
+                // --- LÓGICA DE COMPARTILHAMENTO E RESUMO ---
                 // Pega os dados atuais ativos (se for grupo, harvestData já está agrupado aqui)
                 const currentDataForStats = harvestData.filter(item => item.active !== false);
                 
                 let sumKg = 0;
                 let sumUnits = 0;
-                let sumBoxes = 0; // ADICIONADO: Variável para somar as caixas
+                let sumBoxes = 0;
                 currentDataForStats.forEach(item => {
                     sumKg += parsePTBRNumber(item.harvestWeight);
                     sumUnits += parsePTBRNumber(item.totalUnits);
-                    sumBoxes += parsePTBRNumber(item.boxes); // ADICIONADO: Soma as caixas
+                    sumBoxes += parsePTBRNumber(item.boxes);
                 });
                 let avgW = 0;
                 if(sumUnits > 0) avgW = sumKg / sumUnits;
                 
                 const greetingStr = getGreeting();
-                
                 let rawPartnerName = partnerInput && partnerInput.value ? partnerInput.value : '';
                 let displayHeaderName = (rawPartnerName === 'SPG Oásis' || !rawPartnerName) ? 'Pessoal' : rawPartnerName;
                 const titlePrefix = rawPartnerName === 'SPG Oásis' ? 'Resumo da Produção' : 'Resumo da Pesagem';
 
-                // NOVO: Conta apenas blocos únicos (ex: Bloco 9 bro e Bloco 9 master conta como 1)
                 let numBlocks = 0;
                 if (rawPartnerName === 'SPG Oásis') {
-                    // Usa Set para pegar apenas os talhões que não se repetem
                     numBlocks = new Set(currentDataForStats.map(item => item.talhao)).size;
                 } else {
-                    // Para os outros parceiros conta culturas únicas
                     numBlocks = new Set(currentDataForStats.map(item => item.variety)).size;
                 }
 
-                // ATUALIZADO: Formatação de texto para o WhatsApp com negrito, Crase e Data + Semana
                 const summaryText = `*${greetingStr}, ${displayHeaderName}!*\n\n` +
                                     `\`${titlePrefix} de ${weekday} (${dateStr} - S${weekNum})\`\n\n` +
                                     `*Blocos em Produção:* ${numBlocks}\n\n` +
@@ -2115,17 +2111,9 @@
                                     `*Média (g):* ${avgW.toLocaleString('pt-BR', {minimumFractionDigits: 3, maximumFractionDigits: 3})}\n\n` +
                                     `*Caixas:* ${sumBoxes.toLocaleString('pt-BR')}`;
 
-                // Converte DataURL para File
-                function dataURLtoFile(dataurl, filename) {
-                    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-                        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-                    while(n--){
-                        u8arr[n] = bstr.charCodeAt(n);
-                    }
-                    return new File([u8arr], filename, {type:mime});
-                }
-                
-                const fileToShare = dataURLtoFile(imgData, fileName);
+                // 2. OTIMIZAÇÃO - CRIAR O BLOB DIRETAMENTE (Nativo e mais leve que DataURL)
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const fileToShare = new File([blob], fileName, { type: 'image/png' });
 
                 // Verifica se o navegador suporta o compartilhamento de arquivos
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [fileToShare] })) {
@@ -2138,14 +2126,14 @@
                     } catch (err) {
                         if (err.name !== 'AbortError') {
                             console.error("Erro no compartilhamento:", err);
-                            // Fallback caso dê erro no share
-                            triggerDownload(imgData, fileName);
+                            // Fallback
+                            triggerDownload(canvas.toDataURL('image/png'), fileName);
                         }
                     }
                 } else {
                     // Fallback para download clássico + cópia do texto
-                    alert("Seu dispositivo/navegador não suporta envio direto de imagens. A imagem será baixada e o texto copiado.");
-                    triggerDownload(imgData, fileName);
+                    alert("Seu dispositivo não suporta envio direto. A imagem será baixada e o texto copiado.");
+                    triggerDownload(canvas.toDataURL('image/png'), fileName);
                     
                     const textArea = document.createElement("textarea");
                     textArea.value = summaryText;
