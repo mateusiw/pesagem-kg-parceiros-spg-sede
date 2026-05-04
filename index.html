@@ -2018,11 +2018,10 @@
                 const targetWidth = isGrid ? '850px' : '450px';
                 const winWidth = isGrid ? 900 : 480;
 
-                // AJUSTE: Scale alterado de 5 para 3. 
-                // Scale 5 cria uma imagem gigantesca que trava o navegador com muitos blocos.
-                // Scale 3 ainda é HD (aprox 1350px de largura) e segura para listas longas.
+                // AJUSTE: Scale retornado para 5. O WhatsApp comprime imagens enviadas 
+                // por compartilhamento direto, então uma escala super alta garante o HD.
                 const options = {
-                    scale: 3, 
+                    scale: 5, 
                     useCORS: true, 
                     allowTaint: true,
                     scrollY: -window.scrollY,
