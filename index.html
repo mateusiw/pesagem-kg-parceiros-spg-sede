@@ -433,9 +433,20 @@
         }
 
         // --- FUNÇÃO DE AGRUPAMENTO (GERAÇÃO DE IMAGEM GRUPO) ---
-        function getGroupedData(originalData) {
+        function getGroupedData(itemsToGroup, allPartnerItems = []) {
             const grouped = {};
-            originalData.forEach(item => {
+            const trueAggregates = {};
+            
+            const sourceForAggregates = allPartnerItems.length > 0 ? allPartnerItems : itemsToGroup;
+
+            sourceForAggregates.forEach(item => {
+                const block = item.talhao;
+                if(!trueAggregates[block]) trueAggregates[block] = { accum: 0, plants: 0 };
+                trueAggregates[block].accum += parsePTBRNumber(item.accumulatedUnits);
+                trueAggregates[block].plants = Math.max(trueAggregates[block].plants, parsePTBRNumber(item.totalBlockPlants));
+            });
+
+            itemsToGroup.forEach(item => {
                 const block = item.talhao;
                 if (!grouped[block]) {
                     grouped[block] = { 
@@ -443,8 +454,9 @@
                         boxes: 0, 
                         harvestWeight: 0, 
                         totalUnits: 0, 
-                        accumulatedUnits: 0, 
+                        accumulatedUnits: trueAggregates[block].accum, // Total real incluindo ocultos
                         plantedUnits: 0,
+                        totalBlockPlants: trueAggregates[block].plants, // Plantas totais reais
                         commercialVariety: '',
                         variety: 'Agrupado', // Nome genérico para visualização
                         isGrouped: true // FLAG PARA ALTERAR O VISUAL DO RELATORIO
@@ -453,9 +465,7 @@
                 grouped[block].boxes += parsePTBRNumber(item.boxes);
                 grouped[block].harvestWeight += parsePTBRNumber(item.harvestWeight);
                 grouped[block].totalUnits += parsePTBRNumber(item.totalUnits);
-                grouped[block].accumulatedUnits += parsePTBRNumber(item.accumulatedUnits);
                 grouped[block].plantedUnits += parsePTBRNumber(item.plantedUnits);
-                grouped[block].totalBlockPlants = Math.max(parsePTBRNumber(grouped[block].totalBlockPlants) || 0, parsePTBRNumber(item.totalBlockPlants) || 0);
             });
             
             return Object.values(grouped).map(group => {
@@ -1196,15 +1206,16 @@
             let sumWeight = 0;
             let sumTotalUnits = 0;
             
+            // O getFilteredData traz TODOS do parceiro atual (Ativos E Ocultos)
             const rawData = getFilteredData();
-            // Filtra para exibir e calcular apenas itens que não estão ocultos
+            // Filtra para exibir apenas os ativos visualmente
             const displayData = rawData.filter(item => item.active !== false);
             
-            // Agrupamento para calcular o total do bloco dinamicamente
+            // Agrupamento puxando dados de TODOS os registros (rawData) para o totalizador global ser sempre exato
             const blockAggregates = {};
-            displayData.forEach(item => {
+            rawData.forEach(item => {
                 if (item.partner === 'SPG Oásis') {
-                    const key = item.talhao;
+                    const key = `${item.talhao}-${item.cycle || ''}`;
                     if (!blockAggregates[key]) {
                         blockAggregates[key] = {
                             accumulatedSum: 0,
@@ -1276,7 +1287,6 @@
                     let spgHighlightBlock = '';
                     if (item.partner === 'SPG Oásis') {
                         const days = item.productionDays || '-';
-                        const cycle = item.cycle || '-';
                         const accum = item.accumulatedUnits || '0';
                         const planted = item.plantedUnits || '0';
                         const totalBlockPlants = item.totalBlockPlants || '0';
@@ -1290,13 +1300,12 @@
                         }
                         const remaining = Math.max(0, 100 - percentage);
 
-                        // Cálculo do Progresso Geral do Bloco
-                        const key = item.talhao;
+                        // Cálculo do Progresso Geral do Bloco puxando do blockAggregates
+                        const key = `${item.talhao}-${item.cycle || ''}`;
                         let itemBlockPercentage = item.blockPercentage || 0;
                         let totalAccumSumGeral = accumVal;
                         let pendenteGeral = Math.max(0, parsePTBRNumber(totalBlockPlants) - totalAccumSumGeral);
                         
-                        // Se houver agrupamento válido do bloco, usa a soma de todas as variedades
                         if (blockAggregates[key] && blockAggregates[key].totalBlockPlants > 0) {
                             totalAccumSumGeral = blockAggregates[key].accumulatedSum;
                             let totalBlockPlantsGeral = blockAggregates[key].totalBlockPlants;
@@ -1357,13 +1366,11 @@
                             </div>`;
                         } else {
                             // LAYOUT: DETALHADO (Mantém o progresso da variedade na barra e o bloco no canto)
-                            // Cores da Barra
                             let progressColor = 'bg-yellow-500';
                             let textColor = 'text-slate-600';
                             if (percentage >= 90) { progressColor = 'bg-emerald-500'; textColor = 'text-emerald-600'; }
                             else if (percentage >= 70) { progressColor = 'bg-blue-500'; }
 
-                            // Layout inspirado na referência visual
                             spgHighlightBlock = `
                             <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
                                  <div class="flex justify-end items-end mb-1">
@@ -1417,7 +1424,7 @@
                     }
                     // --- FIM: BLOCO DE DESTAQUE ---
 
-                    // --- BADGE DE STATUS ---
+                    // --- BADGE DE STATUS E TÍTULO ---
                     let statusBadge = '';
                     if (item.partner === 'SPG Oásis') {
                         if (item.status === 'Finalizado') {
@@ -1451,7 +1458,6 @@
                         
                         <div class="flex flex-col mb-3">
                             ${showPartnerTag ? `<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1 opacity-80">${item.partner}</span>` : ''}
-                            <!-- AJUSTE: Título com Tag limpa (sem fundo cinza) para melhor nitidez -->
                             <div class="flex items-start justify-between">
                                 <div class="flex items-start gap-3">
                                     <div class="flex flex-col">
@@ -1465,7 +1471,6 @@
                                         ${statusBadge}
                                     </div>
                                 </div>
-                                <!-- Tag limpa: removido bg-slate-100 e border -->
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide text-right mt-0.5">
                                     ${item.partner === 'SPG Oásis' ? displayVariety : ''}
                                 </span>
@@ -1493,10 +1498,8 @@
             
             let finalAvgWeight = 0;
             if (sumTotalUnits > 0) {
-                // sumWeight is in kg. result is kg/unit (0.234)
                 finalAvgWeight = sumWeight / sumTotalUnits;
             }
-            // ALTERAÇÃO: Formatação para 3 casas decimais (ex: 0,234)
             const finalAvgWeightStr = finalAvgWeight.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
             // ADICIONADO: Lógica para renderizar Previsão de Blocos (Próximos Blocos) com cálculo de Semanas
@@ -1565,7 +1568,6 @@
             footerContainer.innerHTML = `
                 <!-- NOVO PAINEL DE TOTAIS (GRID 2x2 com Cabeçalho) -->
                 <div class="bg-emerald-50 rounded-xl p-4 mb-4 grid grid-cols-2 gap-y-4 gap-x-2 relative overflow-hidden">
-                    <!-- Decorativo Fundo -->
                     <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100/50 rounded-full -mr-8 -mt-8 pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 w-12 h-12 bg-emerald-100/50 rounded-full -ml-6 -mb-6 pointer-events-none"></div>
 
@@ -1577,10 +1579,9 @@
 
                     <div class="text-center">
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">TOTAL PESO (KG)</div>
-                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div> <!-- Removed 'kg' -->
+                        <div class="text-xl font-extrabold text-emerald-800">${sumWeightStr}</div>
                     </div>
 
-                    <!-- Separador Horizontal -->
                     <div class="col-span-2 border-t border-emerald-200/50 w-3/4 mx-auto"></div>
 
                     <!-- Linha 2: Total Caixas e Peso Médio (Lado a Lado) -->
@@ -1590,33 +1591,27 @@
                     </div>
 
                     <div class="text-center">
-                        <!-- AJUSTE: Adicionado ponto final em (G/UNID.) -->
                         <div class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">MÉDIA GERAL (G/UNID.)</div>
                         <div class="text-lg font-extrabold text-emerald-800">${finalAvgWeightStr} g</div>
                     </div>
                 </div>
                 ${forecastHtml}
             `;
-            // Call createIcons again just in case
             lucide.createIcons();
         }
 
-        // Helper (SEM BORDAS)
         function createStatItem(iconName, value, label, theme = 'default') {
-            
             let textColor = 'text-slate-700';
             let labelColor = 'text-slate-400';
             let iconColor = 'text-slate-400';
             let bgColor = 'bg-slate-50';
 
-            // Configuração dos Temas de Cor
             if (theme === 'emerald' || theme === true) {
                 textColor = 'text-emerald-800';
                 labelColor = 'text-emerald-600/70';
                 iconColor = 'text-emerald-600';
                 bgColor = 'bg-emerald-50/50';
             } else if (theme === 'orange') {
-                // TEMA LARANJA CLARINHO
                 textColor = 'text-orange-800';
                 labelColor = 'text-orange-600/70';
                 iconColor = 'text-orange-500';
@@ -1877,11 +1872,13 @@
                 const idxProdDays = getIdx(['dias', 'production']);
                 const idxCycle = getIdx(['ciclo']); // NOVO: Busca a coluna ciclo
                 const idxPlanted = getIdx(['plantada', 'planted', 'qtd variedade plantada', 'total de plantas da variedade']);
-                const idxAccum = getIdx(['acumuladas', 'accumulated', 'acumulado']);
+                
+                // AJUSTADO: Assegura de pegar 'unidades acumuladas' antes de um simples 'acumulado' para evitar pegar 'total acumulado bloco'
+                const idxAccum = getIdx(['unidades acumuladas', 'acumuladas', 'accumulated', 'acumulado']);
                 const idxStatus = getIdx(['status']);
                 const idxPrev = getIdx(['previsao', 'previsão', 'estimated']);
                 
-                // NOVO: Busca coluna de visibilidade e de previsão
+                // Busca coluna de visibilidade e de previsão
                 const idxOculto = getIdx(['oculto', 'hidden']);
                 const idxAtivo = getIdx(['ativo', 'active', 'visível', 'visivel']);
                 const idxInicio = getIdx(['início colheita', 'inicio colheita', 'início']);
@@ -1902,7 +1899,7 @@
 
                 // Limpa os dados atuais do parceiro (SPG Oásis) para evitar duplicação antes de iniciar o loop
                 harvestData = harvestData.filter(item => item.partner !== 'SPG Oásis');
-                forecastBlocksData = []; // ADICIONADO: Limpa as previsões anteriores
+                forecastBlocksData = []; // Limpa as previsões anteriores
 
                 // Formatar datas dd/mm/yyyy para o formato que o input aceita (yyyy-mm-dd)
                 function formatToISO(d) {
@@ -1919,7 +1916,7 @@
 
                     const statusRaw = idxStatus !== -1 && row[idxStatus] ? row[idxStatus] : '';
 
-                    // ADICIONADO: Captura de Previsão de Colheita da planilha
+                    // Captura de Previsão de Colheita da planilha
                     if (statusRaw.toUpperCase() === 'PREVISÃO DE COLHEITA') {
                         const fBlock = idxTalhao !== -1 && row[idxTalhao] ? row[idxTalhao] : '';
                         let fDate = idxInicio !== -1 && row[idxInicio] ? row[idxInicio] : '';
@@ -2014,10 +2011,12 @@
                 if (type === 'grupo') {
                     originalDataTemp = [...harvestData]; // Salva estado original
                     const currentPartner = document.getElementById('partner').value;
-                    const itemsToGroup = originalDataTemp.filter(item => item.partner === currentPartner && item.active !== false);
+                    const allPartnerItems = originalDataTemp.filter(item => item.partner === currentPartner);
+                    const itemsToGroup = allPartnerItems.filter(item => item.active !== false);
                     
-                    // Altera os dados para o modo agrupado
-                    harvestData = getGroupedData(itemsToGroup);
+                    // Altera os dados para o modo agrupado enviando a lista completa (allPartnerItems)
+                    // Isso garante que o cálculo real do bloco some mesmo os ocultos
+                    harvestData = getGroupedData(itemsToGroup, allPartnerItems);
                     renderReport();
                     
                     // Aguarda a renderização visual do navegador estabilizar (importante para o html2canvas)
