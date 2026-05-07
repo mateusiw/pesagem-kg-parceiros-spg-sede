@@ -348,6 +348,24 @@
         </div>
     </div>
 
+    <!-- MODAL DE ALERTAS CUSTOMIZADOS -->
+    <div id="customAlertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col">
+            <div id="customAlertHeader" class="bg-emerald-500 p-6 flex flex-col items-center justify-center text-white transition-colors">
+                <i id="customAlertIcon" data-lucide="check-circle" class="w-12 h-12 mb-3"></i>
+                <h3 id="customAlertTitle" class="text-xl font-bold text-center">Aviso</h3>
+            </div>
+            <div class="p-6 text-center">
+                <div id="customAlertMessage" class="text-sm text-slate-600 mb-6 leading-relaxed space-y-3">
+                    <!-- Mensagem injetada via JS -->
+                </div>
+                <button onclick="closeCustomAlert()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95">
+                    OK, Entendi!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
         console.log("Aplicação 'Resumo Colheita Parceiros SPG SEDE' carregada com sucesso.");
@@ -531,6 +549,51 @@
 
             const dateElement = document.getElementById('headerDateTime');
             dateElement.innerText = `Data: ${day}/${month}/${year} - ${timeString} - Semana ${weekNumber}`;
+        }
+
+        // --- FUNÇÕES DO MODAL DE ALERTAS CUSTOMIZADOS ---
+        function showCustomAlert(title, messages, isError = false) {
+            const modal = document.getElementById('customAlertModal');
+            const innerBox = modal.querySelector('div.bg-white');
+            const headerBox = document.getElementById('customAlertHeader');
+            const titleEl = document.getElementById('customAlertTitle');
+            const msgContainer = document.getElementById('customAlertMessage');
+            const iconEl = document.getElementById('customAlertIcon');
+
+            if (isError) {
+                headerBox.classList.replace('bg-emerald-500', 'bg-red-500');
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                headerBox.classList.replace('bg-red-500', 'bg-emerald-500');
+                iconEl.setAttribute('data-lucide', 'check-circle');
+            }
+            lucide.createIcons();
+
+            titleEl.innerText = title;
+
+            msgContainer.innerHTML = '';
+            messages.forEach(msg => {
+                const p = document.createElement('p');
+                p.innerHTML = msg;
+                msgContainer.appendChild(p);
+            });
+
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            innerBox.classList.remove('scale-95');
+        }
+
+        function closeCustomAlert() {
+            const modal = document.getElementById('customAlertModal');
+            const innerBox = modal.querySelector('div.bg-white');
+            
+            modal.classList.add('opacity-0');
+            innerBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         // --- LOGICA DE FORMULARIO DINAMICO (SPG OASIS) ---
@@ -1631,7 +1694,7 @@
         function copyToWhatsApp() {
             const displayData = getFilteredData().filter(item => item.active !== false);
             if (displayData.length === 0) {
-                alert("Nenhum bloco ativo para gerar o texto.");
+                showCustomAlert('Atenção', ['Nenhum bloco ativo para gerar o texto.'], true);
                 return;
             }
 
@@ -1799,18 +1862,21 @@
             try {
                 const successful = document.execCommand('copy');
                 if(successful) {
-                    alert("Texto copiado para a área de transferência!");
+                    showCustomAlert('Texto Copiado!', [
+                        '<span class="font-bold text-slate-800">Resumo copiado com sucesso!</span>',
+                        'Basta ir no WhatsApp e colar.'
+                    ]);
                 } else {
-                    alert("Não foi possível copiar automaticamente. Tente selecionar e copiar manualmente.");
+                    showCustomAlert('Atenção', ['Não foi possível copiar automaticamente.', 'Tente selecionar e copiar manualmente.'], true);
                 }
             } catch (err) {
                 console.error("Erro ao copiar:", err);
-                alert("Erro ao copiar o texto.");
+                showCustomAlert('Erro', ['Erro ao tentar copiar o texto.'], true);
             }
             document.body.removeChild(textArea);
         }
 
-        // --- FUNÇÕES DO MODAL DE SUCESSO DE IMPORTAÇÃO (NOVAS) ---
+        // --- FUNÇÕES DO MODAL DE SUCESSO DE IMPORTAÇÃO ---
         function showImportSuccessModal(count) {
             const modal = document.getElementById('importSuccessModal');
             const countEl = document.getElementById('importSuccessCount');
@@ -1848,7 +1914,7 @@
                 const text = e.target.result;
                 const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
                 if (lines.length < 2) {
-                    alert("O CSV parece estar vazio ou não possui dados válidos.");
+                    showCustomAlert('Erro na Importação', ['O CSV parece estar vazio ou não possui dados válidos.'], true);
                     return;
                 }
 
@@ -1995,7 +2061,7 @@
             reader.readAsText(file);
         }
 
-        // --- FUNÇÃO PARA GERAR IMAGEM HD (NOVA) ---
+        // --- FUNÇÃO PARA GERAR IMAGEM HD ---
         async function downloadImage(type = 'default') {
             const btnId = type === 'grupo' ? 'btnImageGrupo' : (type === 'tecnico' ? 'btnImageTecnico' : 'btnImageDefault');
             const btnElement = document.getElementById(btnId);
@@ -2124,50 +2190,40 @@
                                     `*Média (g):* ${avgW.toLocaleString('pt-BR', {minimumFractionDigits: 3, maximumFractionDigits: 3})}\n\n` +
                                     `*Caixas:* ${sumBoxes.toLocaleString('pt-BR')}`;
 
-                // 2. OTIMIZAÇÃO - CRIAR O BLOB DIRETAMENTE (Nativo e mais leve que DataURL)
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                const fileToShare = new File([blob], fileName, { type: 'image/png' });
+                // --- MÉTODO ANTIGO (BAIXAR IMAGEM EM HD E COPIAR TEXTO) ---
+                
+                // 1. Forçar o download da imagem em alta qualidade
+                const imgDataHD = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imgDataHD;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                // Verifica se o navegador suporta o compartilhamento de arquivos
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [fileToShare] })) {
-                    try {
-                        await navigator.share({
-                            files: [fileToShare],
-                            title: fileName,
-                            text: summaryText
-                        });
-                    } catch (err) {
-                        if (err.name !== 'AbortError') {
-                            console.error("Erro no compartilhamento:", err);
-                            // Fallback
-                            triggerDownload(canvas.toDataURL('image/png'), fileName);
-                        }
-                    }
-                } else {
-                    // Fallback para download clássico + cópia do texto
-                    alert("Seu dispositivo não suporta envio direto. A imagem será baixada e o texto copiado.");
-                    triggerDownload(canvas.toDataURL('image/png'), fileName);
-                    
-                    const textArea = document.createElement("textarea");
-                    textArea.value = summaryText;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try { document.execCommand('copy'); } catch(e) {}
-                    document.body.removeChild(textArea);
+                // 2. Copiar automaticamente o texto para a área de transferência
+                const textArea = document.createElement("textarea");
+                textArea.value = summaryText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { 
+                    document.execCommand('copy'); 
+                    showCustomAlert('Pronto para Enviar!', [
+                        '✅ <b>Imagem HD salva na galeria!</b>',
+                        '📝 O resumo foi copiado! Basta ir no WhatsApp, anexar a imagem e <b>"Colar"</b> o texto na legenda.'
+                    ]);
+                } catch(e) {
+                    showCustomAlert('Imagem Salva!', [
+                        '✅ <b>Imagem HD salva na galeria!</b>',
+                        '<span class="text-amber-600 font-bold">Aviso: Seu navegador bloqueou a cópia automática do texto.</span>',
+                        'Use o botão "Texto Zap" se precisar copiar o resumo.'
+                    ]);
                 }
-
-                function triggerDownload(data, name) {
-                    const link = document.createElement('a');
-                    link.href = data;
-                    link.download = name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
+                document.body.removeChild(textArea);
 
             } catch (err) {
                 console.error("Erro ao gerar imagem:", err);
-                alert("Erro ao gerar imagem: " + err.message);
+                showCustomAlert('Erro', ['Erro ao gerar imagem: ' + err.message], true);
             } finally {
                 if (btnSpan) btnSpan.innerText = originalText;
                 
